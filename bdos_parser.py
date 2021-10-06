@@ -1,6 +1,5 @@
 import json
 import csv
-import glob
 from logging_helper import logging
 import os
 import config as cfg
