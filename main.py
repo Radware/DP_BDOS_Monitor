@@ -5,7 +5,7 @@ import bdos_parser
 import urllib3
 import logging_helper
 import sys
-
+import os
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -20,6 +20,14 @@ reports_path = "./Reports/"
 raw_data_path = "./Raw Data/"
 requests_path = "./Requests/"
 
+if not os.path.exists('log'):
+	os.makedirs('log')
+
+if not os.path.exists('Raw Data'):
+	os.makedirs('Raw Data')
+
+if not os.path.exists('Reports'):
+	os.makedirs('Reports')
 
 logging_helper.log_setup(cfg.LOG_FILE_PATH, cfg.SYSLOG_SERVER, cfg.SYSLOG_PORT)
 
