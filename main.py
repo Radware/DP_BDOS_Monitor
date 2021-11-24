@@ -67,7 +67,7 @@ def getBDOSReportFromVision():
 		if not dp_attr['Policies']:
 			continue
 		for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
-			if pol_attr["rsIDSNewRulesProfileNetflood"] != "" and pol_attr["rsIDSNewRulesName"] != "null":
+			if pol_attr["rsIDSNewRulesProfileNetflood"] != "" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr["rsIDSNewRulesProfileNetflood"] != "null":
 				bdos_report = v.getBDOSTrafficReport(dp_ip,pol_attr,full_net_dic)
 				bdos_dict[dp_ip]['BDOS Report'].append(bdos_report)
 
@@ -88,7 +88,7 @@ def getDNSReportFromVision():
 		if not dp_attr['Policies']:
 			continue
 		for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
-			if pol_attr["rsIDSNewRulesProfileDNS"] != "":
+			if pol_attr["rsIDSNewRulesProfileDNS"] != "" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr["rsIDSNewRulesProfileDNS"] != "null":
 				dns_report = v.getDNStrafficReport(dp_ip,pol_attr,full_net_dic)
 				dns_dict[dp_ip]['DNS Report'].append(dns_report)
 
@@ -116,8 +116,8 @@ if getdatafromvision:
 	getDNSReportFromVision()
 
 
-
-report = report + bdos_parser.parse()
+if not test_email_alarm:
+	report = report + bdos_parser.parse()
 
 
 if test_email_alarm:
