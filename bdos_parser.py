@@ -70,10 +70,10 @@ def ParseBDOSRawReport():
 					avg_exceededby = 0
 					currthroughput_list = []
 					stampslist_count +=1
-
+					
 					for stamp in stampslist: # every row {'row': {'deviceIp': '10.107.129.205', 'normal': '645.0', 'fullExcluded': '0.0', 'policyName': 'test_1', 'enrichmentContainer': '{}', 'protection': 'tcp-rst', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620152400000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}
 						row = stamp['row']
-						normal_baseline = row['normal']
+						normal_baseline = row['normal']		
 						protoc = row['protection']
 
 						if normal_baseline is None:
@@ -103,9 +103,16 @@ def ParseBDOSRawReport():
 								exceededby = currthroughput / virtual_baseline # calculate the ratio the traffic surpassed the 
 								exceedlist.append(exceededby)
 
+#################Alert if Normal baseline for UDP is lower than 100Mbps################
 
+					if normal_baseline is not None:
+						if float(normal_baseline) < cfg.UDP_NBASELINE and protoc == 'udp':
+							# print(f'{dp_name}' , f'{dp_ip}' ,	f'{policy}, normal baseline is less than 100Mbps "{normal_baseline}" ')
+							with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
+								bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+								bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' , f'{policy}' , f'{protoc}' ,	'N/A' , 'N/A' , f'Normal baseline "{normal_baseline}" is lower than 100Mbps ', f'{normal_baseline}'])
 
-###############Start of High BDOS baselines####################
+###############Start of High BDOS baselines############################################
 
 					if len(currthroughput_list) and sum(currthroughput_list) !=0: # if current throughput list per stamplist is not empty, calculate average throughput
 						# currthroughput_avg = (sum(currthroughput_list)) / (len(currthroughput_list))
@@ -153,7 +160,7 @@ def ParseBDOSRawReport():
 					with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 						low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 						low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for BDOS normal baselines {nonormalbaseline} times'])
-
+			
 	return final_report
 
 

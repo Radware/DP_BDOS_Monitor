@@ -2,6 +2,7 @@
 DET_MARGIN_RATIO = 1 #sets the virtual baseline ratio. For example 1 = Virtual baseline is the same as the actual baseline (100% of the actual Normal bassline), 0.3 = 30% etc.
 DET_ALARM_THRESHOLD = 10 #sets threshold for the number of occurances where the actual traffic went above the Virtual baseline. In case there were more occurrences than the defined threshold, these policies and protocols will be listed in the “low_bdos_baselines.csv”
 DURATION = 1 # sets the time frame in days for the data collection period
+UDP_NBASELINE = 100000 # sets UDP Normal Baseline threhold, below which all policies will be listed
 
 VISION_IP = "1.1.1.1" # APSolute Vision IP
 VISION_USER = "radware" # APSolute Vision username
