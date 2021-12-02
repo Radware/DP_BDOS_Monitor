@@ -105,7 +105,7 @@ class Vision:
 		self.BDOSformatRequest['criteria'][5]['lower'] = self.report_duration
 		self.BDOSformatRequest['criteria'][6]["filters"][0]['filters'][0]['value'] = pol_dp_ip
 		self.BDOSformatRequest['criteria'][6]["filters"][0]['filters'][1]["filters"][0]["value"] = pol_name 
-		self.BDOSformatRequest['criteria'][0]['value'] = 'true'
+		self.BDOSformatRequest['criteria'][0]['value'] = 'true' # default IPv4 true
 		
 		
 		ipv6 = False
@@ -124,27 +124,27 @@ class Vision:
 					net_name = netcl['rsBWMNetworkName']
 					net_addr = netcl['rsBWMNetworkAddress']
 					
-					if net_name == pol_src_net:
+					if net_name == pol_src_net and net_name != "any":
 						if ":" in net_addr:
 							ipv6 = True
 							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv6')  
-							self.BDOSformatRequest['criteria'][0]['value'] = 'false'
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'false'
 							
 						if "." in net_addr:
 							ipv4 = True
 							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv4')  
-							self.BDOSformatRequest['criteria'][0]['value'] = 'true'			
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'true'			
 
-					if net_name == pol_dst_net:
+					if net_name == pol_dst_net and net_name != "any":
 						if ":" in net_addr:
 							ipv6 = True
 							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - dst net is IPv6')
-							self.BDOSformatRequest['criteria'][0]['value'] = 'false'
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'false'
 							
 						if "." in net_addr:
 							ipv4 = True
 							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - dst net is IPv4')  
-							self.BDOSformatRequest['criteria'][0]['value'] = 'true'								
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'true'								
 						
 	
 		for protocol in BDOS_portocols:
@@ -155,11 +155,16 @@ class Vision:
 				self.BDOSformatRequest['criteria'][0]['value'] = 'false'
 				r = self.sess.post(url = url, json = self.BDOSformatRequest , verify=False)
 				jsonData = json.loads(r.text)
-				
 
-				#print(f'{pol_dp_ip}, policy {pol_name} - executing IPv6 query')
+				if jsonData['data'] == ([]): #Empty response
+					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					# print(f'Printing empty resp ipv6 - {empty_resp}')
+					bdosReportList.append(empty_resp)
 
-				bdosReportList.append(jsonData['data'])
+					# print(f'{pol_dp_ip}, policy {pol_name} - executing IPv6 query')
+				else:
+					bdosReportList.append(jsonData['data'])
 
 			if ipv4:
 			
@@ -167,9 +172,16 @@ class Vision:
 				r = self.sess.post(url = url, json = self.BDOSformatRequest , verify=False)
 				jsonData = json.loads(r.text)
 				
-				#print(f'{pol_dp_ip}, policy {pol_name} - executing IPv4 query')
-				
-				bdosReportList.append(jsonData['data'])
+				if jsonData['data'] == ([]): #Empty response
+					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					# print(f'Printing empty resp ipv6 - {empty_resp}')
+					bdosReportList.append(empty_resp)
+
+				# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					# print(f'{pol_dp_ip}, policy {pol_name} - executing IPv4 query')
+				else:
+					bdosReportList.append(jsonData['data'])
 
 		bdosTrafficReport = {pol_name:bdosReportList}
 		
@@ -206,14 +218,14 @@ class Vision:
 					net_name = netcl['rsBWMNetworkName']
 					net_addr = netcl['rsBWMNetworkAddress']
 					
-					if net_name == pol_src_net:
+					if net_name == pol_src_net and net_name != "any":
 						if ":" in net_addr:
 							ipv6 = True
 		
 						if "." in net_addr:
 							ipv4 = True		
 
-					if net_name == pol_dst_net:
+					if net_name == pol_dst_net and net_name != "any":
 						if ":" in net_addr:
 							ipv6 = True
 							
@@ -230,9 +242,15 @@ class Vision:
 				r = self.sess.post(url = url, json = self.DNSformatRequest , verify=False)
 				jsonData = json.loads(r.text)
 				
-				# print(f'{pol_dp_ip}, policy {pol_name} - executing DNS IPv6 query')
+				if jsonData['data'] == ([]): #Empty response
+					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					# print(f'Printing empty resp ipv6 - {empty_resp}')
+					dnsReportList.append(empty_resp)
 
-				dnsReportList.append(jsonData['data'])
+					# print(f'{pol_dp_ip}, policy {pol_name} - executing IPv6 query')
+				else:
+					dnsReportList.append(jsonData['data'])
 
 			if ipv4:
 
@@ -241,13 +259,16 @@ class Vision:
 				r = self.sess.post(url = url, json = self.DNSformatRequest , verify=False)
 				jsonData = json.loads(r.text)
 				
-				# print(f'{pol_dp_ip}, policy {pol_name} - executing DNS IPv4 query')
-				
-				dnsReportList.append(jsonData['data'])				
+				if jsonData['data'] == ([]): #Empty response
+					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					# print(f'Printing empty resp ipv6 - {empty_resp}')
+					dnsReportList.append(empty_resp)
 
-			r = self.sess.post(url = url, json = self.DNSformatRequest , verify=False)
-			jsonData = json.loads(r.text)
-			dnsReportList.append(jsonData['data'])
+				# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					# print(f'{pol_dp_ip}, policy {pol_name} - executing IPv4 query')
+				else:
+					dnsReportList.append(jsonData['data'])
 
 		dnsTrafficReport = {pol_name:dnsReportList}
 		

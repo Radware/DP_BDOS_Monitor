@@ -73,6 +73,21 @@ def ParseBDOSRawReport():
 					
 					for stamp in stampslist: # every row {'row': {'deviceIp': '10.107.129.205', 'normal': '645.0', 'fullExcluded': '0.0', 'policyName': 'test_1', 'enrichmentContainer': '{}', 'protection': 'tcp-rst', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620152400000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}
 						row = stamp['row']
+
+						if 'response' in row:
+							if row['response'] == 'empty':
+								# print(f'{dp_ip},{dp_name},{policy},' , row['protection'] ,' - no BDOS stats ---')
+								empty_resp = True
+								with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats', f'No BDOS stats' , 'No BDOS stats'])
+								
+								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats', f'No BDOS stats' , 'No BDOS stats'])
+
+								continue
+
 						normal_baseline = row['normal']		
 						protoc = row['protection']
 
@@ -197,6 +212,21 @@ def ParseDNSRawReport():
 
 					for stamp in stampslist: # every row {'row': {'deviceIp': '10.107.129.205', 'normal': '645.0', 'fullExcluded': '0.0', 'policyName': 'test_1', 'enrichmentContainer': '{}', 'protection': 'tcp-rst', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620152400000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}
 						row = stamp['row']
+
+						if 'response' in row:
+							if row['response'] == 'empty':
+								print(f'{dp_ip},{dp_name},{policy},' , row['protection'] ,' - no DNS stats ---')
+								empty_resp = True
+								with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
+								
+								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
+
+								continue
+
 						normal_baseline = row['normal']
 						protoc = row['protection']
 
