@@ -58,9 +58,10 @@ def send_report(report_list):
 
 	mailserver = smtplib.SMTP(host=cfg.SMTP_SERVER,port=cfg.SMTP_SERVER_PORT)
 	mailserver.ehlo()
-	mailserver.starttls()
-	mailserver.ehlo()
-	mailserver.login(fromaddr, password)
+	if cfg.SMTP_AUTH:
+		mailserver.starttls()
+		mailserver.ehlo()
+		mailserver.login(fromaddr, password)
 	mailserver.sendmail(from_addr=fromaddr,to_addrs=toaddr, msg=msg.as_string())
 	mailserver.quit()
 

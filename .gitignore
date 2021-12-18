@@ -351,3 +351,5 @@ MigrationBackup/
 config.py
 Raw Data/
 Reports/
+Container/
+requirements.txt.bak

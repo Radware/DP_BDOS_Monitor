@@ -1,11 +1,2 @@
-json
-csv
-config
-socket
-logging
-smtplib
-email
-datetime
-os
+requests
 urllib3
-sys

@@ -53,13 +53,12 @@ V2.2
 
 ## Functionality to be added:
 
-- Add progress
+- Add progress logging
 - High baselines- enhance high baselines detection criteria (currently x4 times)
 - Add dates timeframe as a column into the final report (Hermann, Bell Nov 26, 2021)
 
 # Overview 
 
-The solution was developed through collaborated effort of the Radware team, initiated by Lior Rozen and the team - Marcelo Dantas, Daniel Offek, Egor Egorov, Sagiv Oron, Artur Mehitrian) in 2021.
 The script purpose is to provide 2 reports
 1.	DefensePro BDOS baselines that are set too low report (low_bdos_baselines.csv)
 2.	DefensePro BDOS baselines that are set too high report (high_bdos_baselines.csv)
@@ -174,20 +173,26 @@ datetime
 os
 sys
 
-Packages in use – requires installation
+Packages in use – may require installation 
 
 urllib3
+requests
 
 Use the following command in order to install urllib3
 
-pip install -r requirements.txt 
+pip install -r requirements.txt
 
-## Instructions and recommendations
+## Instructions and recommendations to run on the external server
 
 1. Place the script folder into the appropriate location on the server
 2. Install dependencies and necessary libraries/packages
 3. Rename configuration file `config.py example` to ‘config.py’
-4. Set up the script to run periodically (optional) though cron (linux) or windows scheduler on windows:
+4. Set all the variables in config.py (Vision IP, credentials, etc).
+		It is recommended to limit the Vision user role to "Vision Reporter" only.
+		Vision ReporterHas full control over APSolute Vision reporting capabilities (APM, AVR, and DPM).
+		Can use DefenseFlow. For details, see the DefenseFlow documentation.
+
+5. Set up the script to run periodically (optional) though cron (linux) or windows scheduler on windows:
 Linux cron example
 
 0 4 * * * /path/to/app/bdos_monitor.sh #example setting the script to run every day at 4 am.
