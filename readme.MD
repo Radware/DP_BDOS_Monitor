@@ -50,6 +50,7 @@ V2.1
 V2.2
 -	New feature- detect UDP Normal baselines if less than 100Mbps(configurable)
 -	Added reporting when BDOS or DNS stats are empty
+-	Added config.cfg SMTP_AUTH variable
 
 ## Functionality to be added:
 
