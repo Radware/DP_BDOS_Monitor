@@ -52,6 +52,9 @@ V2.2
 -	Added reporting when BDOS or DNS stats are empty
 -	Added config.cfg SMTP_AUTH variable
 
+V2.3
+-	Jan 19, 2022 Bug fix with BDOS and DNS query - changed "upper" to be an epoch value
+
 ## Functionality to be added:
 
 - Add progress logging
