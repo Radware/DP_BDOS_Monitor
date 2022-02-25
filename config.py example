@@ -7,6 +7,7 @@ UDP_NBASELINE = 100000 # sets UDP Normal Baseline threhold, below which all poli
 VISION_IP = "1.1.1.1" # APSolute Vision IP
 VISION_USER = "radware" # APSolute Vision username
 VISION_PASS = "radware" # APSolute Vision password
+VISION_VER = 4.83
 
 # Log set up parameters
 LOG_FILE_PATH = "./log/" # folder to save the script logging events

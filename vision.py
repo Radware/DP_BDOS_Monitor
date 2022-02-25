@@ -100,7 +100,11 @@ class Vision:
 		pol_src_net = pol_attr["rsIDSNewRulesSource"]
 		pol_dst_net = pol_attr["rsIDSNewRulesDestination"]
 
-		url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_REPORTS'
+		if cfg.VISION_VER < 4.83:
+			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_REPORTS' #pre 4.83 Vision
+		else:
+			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_HOURLY_REPORTS' #4.83 Vision
+
 		BDOS_portocols = ['udp','tcp-syn','tcp-syn-ack','tcp-rst','tcp-ack-fin','tcp-frag','udp-frag','icmp','igmp']
 		
 		self.BDOSformatRequest['criteria'][5]['upper'] = self.time_now
