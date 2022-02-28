@@ -20,8 +20,7 @@ class Vision:
 		self.sess.headers.update({"Content-Type": "application/json"})
 		self.login()
 		self.device_list = self.getDeviceList()
-		# self.last_24_hours = self.epochTimeGenerator(1)
-		# self.last_week = self.epochTimeGenerator(7)
+		self.vision_ver = cfg.VISION_VER
 
 		self.report_duration = self.epochTimeGenerator(cfg.DURATION)
 		self.time_now = int(time.time())*1000
@@ -100,7 +99,7 @@ class Vision:
 		pol_src_net = pol_attr["rsIDSNewRulesSource"]
 		pol_dst_net = pol_attr["rsIDSNewRulesDestination"]
 
-		if cfg.VISION_VER < 4.83:
+		if self.vision_ver < 4.83:
 			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_REPORTS' #pre 4.83 Vision
 		else:
 			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_HOURLY_REPORTS' #4.83 Vision
