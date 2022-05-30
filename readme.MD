@@ -57,6 +57,7 @@ V2.3
 
 V2.4
 -	Feb 25, 2022 Added different API call for BDOS for Vision 4.83
+-	May 30, 2022 Enhanced logging errors
 
 ## Functionality to be added:
 
