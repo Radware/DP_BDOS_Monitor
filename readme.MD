@@ -59,6 +59,9 @@ V2.4
 -	Feb 25, 2022 Added different API call for BDOS for Vision 4.83
 -	May 30, 2022 Enhanced logging errors
 
+V2.5
+- 	Excluded alerting on Normal baseline is lower than configured threshold on policies which includes "DNS" name in it
+
 ## Functionality to be added:
 
 - Add progress logging

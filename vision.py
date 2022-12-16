@@ -93,7 +93,6 @@ class Vision:
 		return net_list	
 
 	def getBDOSTrafficReport(self,pol_dp_ip,pol_attr,net_list):
-
 		pol_name = pol_attr["rsIDSNewRulesName"]
 		pol_src_net = pol_attr["rsIDSNewRulesSource"]
 		pol_dst_net = pol_attr["rsIDSNewRulesDestination"]
@@ -102,7 +101,6 @@ class Vision:
 			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_REPORTS' #pre 4.83 Vision
 		else:
 			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_HOURLY_REPORTS' #4.83 Vision
-
 		BDOS_portocols = ['udp','tcp-syn','tcp-syn-ack','tcp-rst','tcp-ack-fin','tcp-frag','udp-frag','icmp','igmp']
 		
 		self.BDOSformatRequest['criteria'][5]['upper'] = self.time_now
@@ -119,25 +117,27 @@ class Vision:
 		bdosReportList = []
 		
 		for net_dp_ip, dp_attr in net_list.items():
+
 			if dp_attr == ([]):
 				#if unreachable do not perform other tests
 				continue
 			
 			if net_dp_ip == pol_dp_ip:
+				
 
 				for netcl in dp_attr['rsBWMNetworkTable']: #for each netclass element
 					net_name = netcl['rsBWMNetworkName']
 					net_addr = netcl['rsBWMNetworkAddress']
-					
+					print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name}')  
 					if net_name == pol_src_net and net_name != "any":
 						if ":" in net_addr:
 							ipv6 = True
-							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv6')  
+							# logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv6')  
 							# self.BDOSformatRequest['criteria'][0]['value'] = 'false'
 							
 						if "." in net_addr:
 							ipv4 = True
-							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv4')  
+							# logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv4')  
 							# self.BDOSformatRequest['criteria'][0]['value'] = 'true'			
 
 					if net_name == pol_dst_net and net_name != "any":
@@ -153,12 +153,15 @@ class Vision:
 						
 	
 		for protocol in BDOS_portocols:
+
 			self.BDOSformatRequest['criteria'][1]["value"] = protocol
 			
 			if ipv6:
-			
+				print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - IPv6')  
+
 				self.BDOSformatRequest['criteria'][0]['value'] = 'false'
 				r = self.sess.post(url = url, json = self.BDOSformatRequest , verify=False)
+
 				jsonData = json.loads(r.text)
 
 				if jsonData['data'] == ([]): #Empty response

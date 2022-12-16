@@ -121,7 +121,7 @@ def ParseBDOSRawReport():
 #################Alert if Normal baseline for UDP is lower than 100Mbps################
 
 					if normal_baseline is not None:
-						if float(normal_baseline) < cfg.UDP_NBASELINE and protoc == 'udp':
+						if float(normal_baseline) < cfg.UDP_NBASELINE and protoc == 'udp' and "DNS" not in policy:
 							# print(f'{dp_name}' , f'{dp_ip}' ,	f'{policy}, normal baseline is less than 100Mbps "{normal_baseline}" ')
 							with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
 								bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -204,109 +204,111 @@ def ParseDNSRawReport():
 				stampslist_count = 0
 				no_traffic = 0
 				
-				for stampslist in pol_attr: #stampslist = IF 24 hours - list of 72 checkpoints (every 20 min) for the particular protection (udp, tcp-syn etc.) [{'row': {'deviceIp': '10.107.129.206', 'normal': '161.0', 'fullExcluded': '-1.0', 'policyName': 'NIX-NC-EB-dns', 'enrichmentContainer': '{}', 'protection': 'tcp-frag', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620141600000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}, {'row': ....
-					exceedlist = []
-					avg_exceededby = 0
-					currthroughput_list = []
-					stampslist_count +=1
+				#if pol_attr is not empty
+				if pol_attr:
 
-					for stamp in stampslist: # every row {'row': {'deviceIp': '10.107.129.205', 'normal': '645.0', 'fullExcluded': '0.0', 'policyName': 'test_1', 'enrichmentContainer': '{}', 'protection': 'tcp-rst', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620152400000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}
-						row = stamp['row']
+					for stampslist in pol_attr: #stampslist = IF 24 hours - list of 72 checkpoints (every 20 min) for the particular protection (udp, tcp-syn etc.) [{'row': {'deviceIp': '10.107.129.206', 'normal': '161.0', 'fullExcluded': '-1.0', 'policyName': 'NIX-NC-EB-dns', 'enrichmentContainer': '{}', 'protection': 'tcp-frag', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620141600000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}, {'row': ....
+						exceedlist = []
+						avg_exceededby = 0
+						currthroughput_list = []
+						stampslist_count +=1
 
-						if 'response' in row:
-							if row['response'] == 'empty':
-								print(f'{dp_ip},{dp_name},{policy},' , row['protection'] ,' - no DNS stats ---')
-								empty_resp = True
-								with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
-									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
-								
-								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
-									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
+						for stamp in stampslist: # every row {'row': {'deviceIp': '10.107.129.205', 'normal': '645.0', 'fullExcluded': '0.0', 'policyName': 'test_1', 'enrichmentContainer': '{}', 'protection': 'tcp-rst', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620152400000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}
+							row = stamp['row']
 
+							if 'response' in row:
+								if row['response'] == 'empty':
+									print(f'{dp_ip},{dp_name},{policy},' , row['protection'] ,' - no DNS stats ---')
+									empty_resp = True
+									with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
+									
+									with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
+
+									continue
+
+							normal_baseline = row['normal']
+							protoc = row['protection']
+
+							if normal_baseline is None:
+								# normal_baseline = 0
+								nonormalbaseline +=1
 								continue
 
-						normal_baseline = row['normal']
-						protoc = row['protection']
+							currthroughput = row['full']
+							if currthroughput is None:
+								notrafficstats +=1
+								# currthroughput = 0
+								continue
 
-						if normal_baseline is None:
-							# normal_baseline = 0
-							nonormalbaseline +=1
-							continue
+							virtual_baseline = float(normal_baseline)* ratio
 
-						currthroughput = row['full']
-						if currthroughput is None:
-							notrafficstats +=1
-							# currthroughput = 0
-							continue
-
-						virtual_baseline = float(normal_baseline)* ratio
-
-						currthroughput = float(currthroughput)
-						
-						currthroughput_list.append(currthroughput)
-
-
-						if  currthroughput > virtual_baseline:
-							if virtual_baseline != 0:
-								final_dns_report[dp_ip]['Policies'][policy][protoc][0] += 1
-						
-							if virtual_baseline !=0:
-								# print(f'Virt baseline is not 0 for {dp_name} , {dp_ip} ,{policy} , {protoc}' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(row['timeStamp'])//1000)))
-								exceededby = currthroughput / virtual_baseline # calculate the ratio the traffic surpassed the 
-								exceedlist.append(exceededby)
-
-
-
-###############Start of High BDOS baselines####################
-
-					if len(currthroughput_list) and sum(currthroughput_list) !=0: # if current throughput list per stamplist is not empty, calculate average throughput
-						# currthroughput_avg = (sum(currthroughput_list)) / (len(currthroughput_list))
-
-						top_currthroughput_idx = sorted(range(len(currthroughput_list)), key=lambda i: currthroughput_list[i])[-10:]
-						top_currthroughput_list = [currthroughput_list[i] for i in top_currthroughput_idx]
-					
-						top_currthroughput_avg = (sum(top_currthroughput_list)) / (len(top_currthroughput_list))
-
-						multiplier = top_currthroughput_avg * 4
-
-						if top_currthroughput_avg == 0.0:#if average traffic is 0.0, count this stamplist as non carrying traffic
-							no_traffic +=1
-						
-						if top_currthroughput_avg != 0.0 and normal_baseline is not None and float(normal_baseline) !=0.0 and float(normal_baseline) > multiplier:
-							# print (f'{dp_ip}, {policy}, {protoc}, {normal_baseline} {currthroughput_avg} ')
-							high_baseline_ratio = (top_currthroughput_avg / float(normal_baseline)) * 100
-							high_baseline_delta = float(normal_baseline) - top_currthroughput_avg
+							currthroughput = float(currthroughput)
 							
+							currthroughput_list.append(currthroughput)
 
-							with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
-								highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-								highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}'])
 
-#################End of High baselines detection###############################################
+							if  currthroughput > virtual_baseline:
+								if virtual_baseline != 0:
+									final_dns_report[dp_ip]['Policies'][policy][protoc][0] += 1
+							
+								if virtual_baseline !=0:
+									# print(f'Virt baseline is not 0 for {dp_name} , {dp_ip} ,{policy} , {protoc}' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(row['timeStamp'])//1000)))
+									exceededby = currthroughput / virtual_baseline # calculate the ratio the traffic surpassed the 
+									exceedlist.append(exceededby)
+
+
+
+	###############Start of High BDOS baselines####################
+
+						if len(currthroughput_list) and sum(currthroughput_list) !=0: # if current throughput list per stamplist is not empty, calculate average throughput
+							# currthroughput_avg = (sum(currthroughput_list)) / (len(currthroughput_list))
+
+							top_currthroughput_idx = sorted(range(len(currthroughput_list)), key=lambda i: currthroughput_list[i])[-10:]
+							top_currthroughput_list = [currthroughput_list[i] for i in top_currthroughput_idx]
 						
-					if len(exceedlist): # if list is not empty, calculate the average exceeding ratio
-						avg_exceededby = (sum(exceedlist)) / len(exceedlist)
-						final_dns_report[dp_ip]['Policies'][policy][row['protection']][1] = avg_exceededby
+							top_currthroughput_avg = (sum(top_currthroughput_list)) / (len(top_currthroughput_list))
+
+							multiplier = top_currthroughput_avg * 4
+
+							if top_currthroughput_avg == 0.0:#if average traffic is 0.0, count this stamplist as non carrying traffic
+								no_traffic +=1
+							
+							if top_currthroughput_avg != 0.0 and normal_baseline is not None and float(normal_baseline) !=0.0 and float(normal_baseline) > multiplier:
+								# print (f'{dp_ip}, {policy}, {protoc}, {normal_baseline} {currthroughput_avg} ')
+								high_baseline_ratio = (top_currthroughput_avg / float(normal_baseline)) * 100
+								high_baseline_delta = float(normal_baseline) - top_currthroughput_avg
+								
+
+								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
+									highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+									highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}'])
+
+	#################End of High baselines detection###############################################
+							
+						if len(exceedlist): # if list is not empty, calculate the average exceeding ratio
+							avg_exceededby = (sum(exceedlist)) / len(exceedlist)
+							final_dns_report[dp_ip]['Policies'][policy][row['protection']][1] = avg_exceededby
+
+					
+					if len(stampslist): 
+						# No traffic
+						if no_traffic == stampslist_count:#if currthroughput_avg == 0.0 on all protocol types
+							logging.info(f'DP IP {dp_ip} DP name {dp_name} policy {policy}- No traffic for any of the DNS protocols.')
+							with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
+								low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+								low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , 'No traffic for any of the DNS protocols'])
 
 
-
-				if len(stampslist): 
-					# No traffic
-					if no_traffic == stampslist_count:#if currthroughput_avg == 0.0 on all protocol types
-						logging.info(f'DP IP {dp_ip} DP name {dp_name} policy {policy}- No traffic for any of the DNS protocols.')
+					if nonormalbaseline > 0 or notrafficstats > 0: 
+						# DNS traffic statistics are lost
+						logging.info(f'Lost stats for DNS normal baselines "{nonormalbaseline}" times. DP IP {dp_ip} DP name {dp_name} policy {policy}.')
 						with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 							low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , 'No traffic for any of the DNS protocols'])
-
-
-				if nonormalbaseline > 0 or notrafficstats > 0: 
-					# DNS traffic statistics are lost
-					logging.info(f'Lost stats for DNS normal baselines "{nonormalbaseline}" times. DP IP {dp_ip} DP name {dp_name} policy {policy}.')
-					with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
-						low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-						low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for DNS normal baselines {nonormalbaseline} times'])
+							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for DNS normal baselines {nonormalbaseline} times'])
 
 	return final_dns_report
 
