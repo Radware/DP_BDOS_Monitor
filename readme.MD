@@ -62,6 +62,9 @@ V2.4
 V2.5
 - 	Excluded alerting on Normal baseline is lower than configured threshold on policies which includes "DNS" name in it
 
+V2.6
+-	Bugfixes
+-	Added extracheck to send email only if low_baselines.csv has entries and removed sending high_baselines.csv
 ## Functionality to be added:
 
 - Add progress logging

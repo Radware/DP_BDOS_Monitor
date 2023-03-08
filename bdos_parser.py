@@ -119,14 +119,15 @@ def ParseBDOSRawReport():
 								exceedlist.append(exceededby)
 
 #################Alert if Normal baseline for UDP is lower than 100Mbps################
-
-					if normal_baseline is not None:
-						if float(normal_baseline) < cfg.UDP_NBASELINE and protoc == 'udp' and "DNS" not in policy:
-							# print(f'{dp_name}' , f'{dp_ip}' ,	f'{policy}, normal baseline is less than 100Mbps "{normal_baseline}" ')
-							with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
-								bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-								bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' , f'{policy}' , f'{protoc}' ,	'N/A' , 'N/A' , f'Normal baseline "{int(float(normal_baseline)/1000)}Mbps" is lower than 100Mbps'])
-
+					try:
+						if normal_baseline is not None:
+							if float(normal_baseline) < cfg.UDP_NBASELINE and protoc == 'udp' and "DNS" not in policy:
+								# print(f'{dp_name}' , f'{dp_ip}' ,	f'{policy}, normal baseline is less than 100Mbps "{normal_baseline}" ')
+								with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
+									bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+									bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' , f'{policy}' , f'{protoc}' ,	'N/A' , 'N/A' , f'Normal baseline "{int(float(normal_baseline)/1000)}Mbps" is lower than 100Mbps'])
+					except:
+						pass
 ###############Start of High BDOS baselines############################################
 
 					if len(currthroughput_list) and sum(currthroughput_list) !=0: # if current throughput list per stamplist is not empty, calculate average throughput
