@@ -21,6 +21,7 @@ DP_IP_SCOPE_LIST = ['10.105.192.30','10.105.192.34'] #['10.105.192.30','10.105.1
 REPORTS_PATH = "./Reports/" # Path to save reports
 RAW_DATA_PATH = "./Raw Data/" # Path to save raw data
 REQUESTS_PATH = "./Requests/" # Path to save requests payload
+CUSTOMERS_JSON_PATH = "./"
 
 # Log set up parameters
 LOG_FILE_PATH = "./log/" # folder to save the script logging events

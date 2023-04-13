@@ -127,7 +127,7 @@ else: # If Script run without argument "--use-cache-data" - script will collect 
 			print(f'CUSTOMERS_JSON_CUST_ID_LIST is defined - collecting data for customers {cfg.CUSTOMERS_JSON_CUST_ID_LIST}')
 			print('-' * 25)
 
-		with open("customers.json") as customers_file:
+		with open(cfg.CUSTOMERS_JSON_PATH+ "customers.json") as customers_file:
 			customers = json.load(customers_file)
 			
 			for customer in customers:
