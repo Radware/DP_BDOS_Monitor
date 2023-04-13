@@ -1,0 +1,30 @@
+[
+	{
+		"id": "TEST",
+		"longName": "Test Customer",
+		"visions": [
+			{
+				"ip": "192.168.1.106",
+				"dps": "192.168.1.107,192.168.1.108"
+			}
+		],
+		"defensepros": {
+			"1.1.1.1": "DefensePro1",
+			"2.2.2.2": "DefensePro2",
+			"3.3.3.3": "DefensePro3"
+		},
+		"variables": {
+			"pktDivisor": 1000000,
+			"pktUnit": "Million Packets",
+			"bwDivisor": 8000000,
+			"bwUnit": "GigaBytes",
+			"decimals": 2,
+			"pktDecimals": 2,
+			"bwDecimals": 2
+		},
+		"user": "radware",
+		"pass": "radware",
+		"exclude": "category:ErtFeed,category:GeoFeed,category:Anomalies",
+		"report": "json_files/MonthlyReport.json"
+	}
+]

@@ -6,9 +6,9 @@ import time
 from logging_helper import logging
 
 
-reports_path = "./Reports/"
-raw_data_path = "./Raw Data/"
-requests_path = "./Requests/"
+reports_path = cfg.REPORTS_PATH
+raw_data_path = cfg.RAW_DATA_PATH
+requests_path = cfg.REQUESTS_PATH
 
 class Vision:
 
@@ -56,6 +56,10 @@ class Vision:
 
 		dev_list = {item['managementIp']: {'Type': item['type'], 'Name': item['name'],
 			'Version': item['deviceVersion'], 'ormId': item['ormId']} for item in json_txt if item['type'] == "DefensePro"}
+
+		with open(raw_data_path + 'full_dev_list.json', 'w') as full_dev_list_file:
+			json.dump(dev_list,full_dev_list_file)
+
 		return dev_list
 		
 	def epochTimeGenerator(self,days):
@@ -128,7 +132,7 @@ class Vision:
 				for netcl in dp_attr['rsBWMNetworkTable']: #for each netclass element
 					net_name = netcl['rsBWMNetworkName']
 					net_addr = netcl['rsBWMNetworkAddress']
-					print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name}')  
+					#print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name}')  
 					if net_name == pol_src_net and net_name != "any":
 						if ":" in net_addr:
 							ipv6 = True
@@ -157,7 +161,7 @@ class Vision:
 			self.BDOSformatRequest['criteria'][1]["value"] = protocol
 			
 			if ipv6:
-				print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - IPv6')  
+				#print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - IPv6')  
 
 				self.BDOSformatRequest['criteria'][0]['value'] = 'false'
 				r = self.sess.post(url = url, json = self.BDOSformatRequest , verify=False)
@@ -283,30 +287,63 @@ class Vision:
 		
 		return dnsTrafficReport
 
-	def getFullPolicyDictionary(self):
+	def getFullPolicyDictionary(self,key, val, full_pol_dic):
 		# Create Full Policies list with attributes dictionary per DefensePro
 
-		full_pol_dic = {}
-		for key, val in self.device_list.items():
-			full_pol_dic[key] = {}
-			full_pol_dic[key]['Name'] = val['Name']
-			full_pol_dic[key]['Version'] = val['Version']
-			full_pol_dic[key]['Policies'] = self.getPolicyListByDevice(key)
-		
-		with open(raw_data_path + 'full_pol_dic.json', 'w') as full_pol_dic_file:
-			json.dump(full_pol_dic,full_pol_dic_file)
 
+		full_pol_dic[key] = {}
+		full_pol_dic[key]['Name'] = val['Name']
+		full_pol_dic[key]['Version'] = val['Version']
+		full_pol_dic[key]['Policies'] = self.getPolicyListByDevice(key)
+		
 		return full_pol_dic
 
 
-	def getFullNetClassDictionary(self):
+	def getFullNetClassDictionary(self,key, val, full_net_dic):
 		# Create Full Network class profile list with networks dictionary per DefensePro
+		
+		if self.getNetClassListByDevice(key) == ([]): #If DefensePro is unreachable
+			full_net_dic[key]['rsBWMNetworkTable'] = []
+			full_net_dic[key]['Name'] = val['Name']
 
-		full_net_dic = {}
-		for key in self.device_list:
+		else:
+
 			full_net_dic[key] = self.getNetClassListByDevice(key)
-
-		with open(raw_data_path + 'full_net_dic.json', 'w') as full_net_dic_file:
-			json.dump(full_net_dic,full_net_dic_file)
+			full_net_dic[key]['Name'] = val['Name']
 			
 		return full_net_dic
+	
+
+	def getBDOSReportFromVision(self,full_pol_dic,full_net_dic,bdos_stats_dict):
+
+
+		for dp_ip,dp_attr in full_pol_dic.items():
+			bdos_stats_dict[dp_ip] = {}
+			bdos_stats_dict[dp_ip]['Name'] = dp_attr['Name']
+			bdos_stats_dict[dp_ip]['BDOS Report'] = []
+
+			if not dp_attr['Policies']:
+				continue
+			for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
+				if pol_attr["rsIDSNewRulesProfileNetflood"] != "" and pol_attr["rsIDSNewRulesProfileNetflood"] != "null" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr['rsIDSNewRulesState'] != "2":
+					bdos_report = self.getBDOSTrafficReport(dp_ip,pol_attr,full_net_dic)
+					bdos_stats_dict[dp_ip]['BDOS Report'].append(bdos_report)
+
+		return bdos_stats_dict
+	
+
+	def getDNSReportFromVision(self,full_pol_dic,full_net_dic,dns_stats_dict):
+
+		for dp_ip,dp_attr in full_pol_dic.items():
+			dns_stats_dict[dp_ip] = {}
+			dns_stats_dict[dp_ip]['Name'] = dp_attr['Name']
+			dns_stats_dict[dp_ip]['DNS Report'] = []
+
+			if not dp_attr['Policies']:
+				continue
+			for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
+				if pol_attr["rsIDSNewRulesProfileDNS"] != "" and pol_attr["rsIDSNewRulesProfileDNS"] != "null" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr['rsIDSNewRulesState'] != "2":
+					dns_report = self.getDNStrafficReport(dp_ip,pol_attr,full_net_dic)
+					dns_stats_dict[dp_ip]['DNS Report'].append(dns_report)
+
+		return dns_stats_dict

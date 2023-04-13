@@ -8,6 +8,19 @@ VISION_IP = "1.1.1.1" # APSolute Vision IP
 VISION_USER = "radware" # APSolute Vision username
 VISION_PASS = "radware" # APSolute Vision password
 VISION_VER = 4.83
+#################  Scope  #################
+
+#######- EITHER -#######
+CUSTOMERS_JSON = False # True - scope for the data collection will be defined from "customers.json" file, False - scope will be defined using config.py variable "DP_IP_SCOPE_LIST"
+CUSTOMERS_JSON_CUST_ID_LIST = [] # List of customer IDs to collect data for, comma separated, example ['Customer A','Customer B']. If empty [] - collect data for all customers defined in customers.json file
+
+######   --OR--  #######
+DP_IP_SCOPE_LIST = ['10.105.192.30','10.105.192.34'] #['10.105.192.30','10.105.192.34'] List of DefensePro IP addresses to analyze, comma separated, example ['1.1.1.2','1.1.1.3']. if empty []- analyze all DefensePro in Vision
+###########################################
+
+REPORTS_PATH = "./Reports/" # Path to save reports
+RAW_DATA_PATH = "./Raw Data/" # Path to save raw data
+REQUESTS_PATH = "./Requests/" # Path to save requests payload
 
 # Log set up parameters
 LOG_FILE_PATH = "./log/" # folder to save the script logging events

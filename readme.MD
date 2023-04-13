@@ -65,6 +65,23 @@ V2.5
 V2.6
 -	Bugfixes
 -	Added extracheck to send email only if low_baselines.csv has entries and removed sending high_baselines.csv
+
+V3.0 (4/13/2023)
+- 	Added choosing DefensePro Scope
+		!!! New mandatory variable "DP_IP_SCOPE_LIST" added into config.py, add below line into "config.py"
+			DP_IP_SCOPE_LIST = [] # List of DefensePro IP addresses to analyze, comma separated, example ['1.1.1.2','1.1.1.3']. if empty []- analyze all DefensePro in Vision
+
+- 	Added cleaning up existing DP config before collecting new ones
+- 	Added writing device list to the raw json file
+- 	Added new functionality - defining DP scope using customers.json file
+		!!! New mandatory variables added into config.py
+		add below line into "config.py"
+
+		CUSTOMERS_JSON = False # True - scope for the data collection will be defined from "customers.json" file, False - scope will be defined using config.py variable "DP_IP_SCOPE_LIST"
+
+		CUSTOMERS_JSON_CUST_ID_LIST = [] # List of customer IDs to collect data for, comma separated, example ['Customer A','Customer B']. If empty [] - collect data for all customers defined in customers.json file
+-	Code optimizations
+
 ## Functionality to be added:
 
 - Add progress logging
@@ -110,7 +127,18 @@ Next step is the script counts occurrences where the actual traffic crossed the 
 The degree of how bad the low baselines are can be measured by the “Exceed average ratio” between traffic and the normal edge when the traffic-exceeds-normal-edge events. This ratio is calculated based on the average of all exceeding events during the defined time period (default 24 hours).
 The higher the ratio, the worse the base line. In the example below we can see that the worst “Exceed average ratio” for the “tcp-syn” type of traffic is 2.14 meaning that based on 22 times the tcp-syn traffic exceed the Normal baseline on average 2.14 times or by ~114%
  
+########################################################################
 
+"Exceeded average ratio" - how it is calculated
+
+for every checkpoint of data (if 24 hours, every 20 min = 72 checkpoints)
+    if currthroughput > virtual_baseline
+        exceededby = currthroughput / virtual_baseline # calculate the ratio the traffic surpassed the 
+        exceedlist.append(exceededby) # add every entry to the list
+
+
+avg_exceededby = (sum(exceedlist)) / len(exceedlist) # standard math average calcuation from the list (sum all divided by number of all)
+#######################################################################
 
 In order to continuously monitor the BDOS baselines, it is recommended to run the main script on a daily basis and collect BDOS Baselines from Radware Vision and traffic statistics for the last 24 hours.
 
@@ -131,6 +159,33 @@ DURATION = 6 # sets the time frame in days for the data collection period. For e
 VISION_IP = "1.1.1.1" # APSolute Vision IP
 VISION_USER = "user" # APSolute Vision username
 VISION_PASS = "password" # APSolute Vision password
+
+#################  Scope  #################
+
+Scope can be defined in one of two ways:
+
+#######- EITHER -#######
+
+1. Using the same format of the customers.json file from Monthly Report script- just place the file into the same directory.
+
+CUSTOMERS_JSON = True
+	True - scope for the data collection will be defined from "customers.json" file, 
+	False - scope will be defined using config.py variable "DP_IP_SCOPE_LIST"
+
+
+CUSTOMERS_JSON_CUST_ID_LIST = ['ICN-DMZ'] 
+
+	List of customer IDs to collect data for, comma separated, example ['Customer A','Customer B']. If empty [] - collect data for all customers defined in customers.json file
+
+######   --OR--  #######
+
+2. Manully defining the scope of DefensePro using "DP_IP_SCOPE_LIST" variable
+
+DP_IP_SCOPE_LIST = [] 
+	Example DP_IP_SCOPE_LIST = ['10.105.192.30','10.105.192.34'] 
+	This is list of DefensePro IP addresses to analyze, comma separated, example ['1.1.1.2','1.1.1.3']. if empty []- analyze all DefensePro in Vision
+	
+###########################################
 
 ##### Script logging set up parameters 
 LOG_FILE_PATH = "./log/" # folder to save the script logging events
