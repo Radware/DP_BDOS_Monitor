@@ -82,6 +82,11 @@ V3.0 (4/13/2023)
 		CUSTOMERS_JSON_CUST_ID_LIST = [] # List of customer IDs to collect data for, comma separated, example ['Customer A','Customer B']. If empty [] - collect data for all customers defined in customers.json file
 -	Code optimizations
 
+V3.1(6/19/23)
+-	Bugfix - network class parsing failure when DP is unreachable
+-	New feature - Added Customer ID column from customers.json to the csv reports
+-	New feature - Added Severity column to the csv reports 
+
 ## Functionality to be added:
 
 - Add progress logging

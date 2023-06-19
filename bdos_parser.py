@@ -17,11 +17,11 @@ def parse():
 	# Creates empty csv files with headers
 	with open(reports_path + 'low_bdos_baselines.csv', mode='w', newline="") as low_bdos_baselines:
 		low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-		low_bdos_baselines.writerow(['DefensePro Name' , 'DefensePro IP' ,	'Policy' , 'Traffic type' ,	'No of times exceeded' , 'Exceed average ratio', 'Details'])
+		low_bdos_baselines.writerow(['DefensePro Name' , 'DefensePro IP' ,	'Policy' , 'Traffic type' ,	'No of times exceeded' , 'Exceed average ratio', 'Details', 'Customer ID','Severity'])
 
 	with open(reports_path + 'high_bdos_baselines.csv', mode='w', newline="") as high_bdos_baselines:
 		high_bdos_baselines = csv.writer(high_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-		high_bdos_baselines.writerow([f'DefensePro IP' , f'DefensePro Name', f'Policy', f'Protocol' , f'Throughput average(Mbps)', f'Normal Baselin(Mbps)' , f'Delta from average traffic to Normal baseline in Mbps' , f'Average traffic ratio from baseline in %'])
+		high_bdos_baselines.writerow([f'DefensePro IP' , f'DefensePro Name', f'Policy', f'Protocol' , f'Throughput average(Mbps)', f'Normal Baselin(Mbps)' , f'Delta from average traffic to Normal baseline in Mbps' , f'Average traffic ratio from baseline in %', 'Customer ID','Severity'])
 
 
 	ParseBDOSStats(ParseBDOSRawReport())
@@ -53,6 +53,8 @@ def ParseBDOSRawReport():
 		dp_name = dp_ip_attr['Name']
 		final_report[dp_ip] = {}
 		final_report[dp_ip]['Name'] = dp_name
+		final_report[dp_ip]['Customer ID'] = dp_ip_attr['Customer ID']
+		cust_id = dp_ip_attr['Customer ID']
 		final_report[dp_ip]['Policies'] = {}
 		
 	
@@ -80,11 +82,11 @@ def ParseBDOSRawReport():
 								empty_resp = True
 								with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
 									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats', f'No BDOS stats' , 'No BDOS stats'])
+									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats', f'No BDOS stats' , 'No BDOS stats' , f'{cust_id}','Medium'])
 								
 								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
 									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats', f'No BDOS stats' , 'No BDOS stats'])
+									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats', f'No BDOS stats' , 'No BDOS stats', f'{cust_id}','Medium'])
 
 								continue
 
@@ -125,7 +127,7 @@ def ParseBDOSRawReport():
 								# print(f'{dp_name}' , f'{dp_ip}' ,	f'{policy}, normal baseline is less than 100Mbps "{normal_baseline}" ')
 								with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
 									bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' , f'{policy}' , f'{protoc}' ,	'N/A' , 'N/A' , f'Normal baseline "{int(float(normal_baseline)/1000)}Mbps" is lower than 100Mbps'])
+									bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' , f'{policy}' , f'{protoc}' ,	'N/A' , 'N/A' , f'Normal baseline "{int(float(normal_baseline)/1000)}Mbps" is lower than 100Mbps', f'{cust_id}','Informational'])
 					except:
 						pass
 ###############Start of High BDOS baselines############################################
@@ -151,7 +153,7 @@ def ParseBDOSRawReport():
 
 							with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
 								highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-								highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}'])
+								highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}', f'{cust_id}','Informational'])
 
 #################End of High baselines detection###############################################
 						
@@ -167,7 +169,7 @@ def ParseBDOSRawReport():
 						logging.info(f'DP IP {dp_ip} DP name {dp_name} policy {policy}- No traffic for any of the BDOS protocols.')
 						with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 							low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , 'No traffic for any of the BDOS protocols'])
+							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , 'No traffic for any of the BDOS protocols', {cust_id},'Informational'])
 
 
 				if nonormalbaseline > 0 or notrafficstats > 0: 
@@ -175,7 +177,7 @@ def ParseBDOSRawReport():
 					logging.info(f'Lost stats for BDOS normal baselines "{nonormalbaseline}" times. DP IP {dp_ip} DP name {dp_name} policy {policy}.')
 					with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 						low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-						low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for BDOS normal baselines {nonormalbaseline} times'])
+						low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for BDOS normal baselines {nonormalbaseline} times',{cust_id},'Medium'])
 			
 	return final_report
 
@@ -193,6 +195,8 @@ def ParseDNSRawReport():
 		dp_name = dp_ip_attr['Name']
 		final_dns_report[dp_ip] = {}
 		final_dns_report[dp_ip]['Name'] = dp_name
+		final_dns_report[dp_ip]['Customer ID'] = dp_ip_attr['Customer ID']
+		cust_id = dp_ip_attr['Customer ID']
 		final_dns_report[dp_ip]['Policies'] = {}
 		
 	
@@ -219,15 +223,15 @@ def ParseDNSRawReport():
 
 							if 'response' in row:
 								if row['response'] == 'empty':
-									print(f'{dp_ip},{dp_name},{policy},' , row['protection'] ,' - no DNS stats ---')
+									#print(f'{dp_ip},{dp_name},{policy},' , row['protection'] ,' - no DNS stats ---')
 									empty_resp = True
 									with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
 										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
+										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats',{cust_id},'Medium'])
 									
 									with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
 										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats'])
+										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats', f'No DNS stats' , 'No DNS stats',{cust_id},'Medium'])
 
 									continue
 
@@ -286,7 +290,7 @@ def ParseDNSRawReport():
 
 								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
 									highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}'])
+									highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}',{cust_id},'Informational'])
 
 	#################End of High baselines detection###############################################
 							
@@ -301,7 +305,7 @@ def ParseDNSRawReport():
 							logging.info(f'DP IP {dp_ip} DP name {dp_name} policy {policy}- No traffic for any of the DNS protocols.')
 							with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 								low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-								low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , 'No traffic for any of the DNS protocols'])
+								low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , 'No traffic for any of the DNS protocols',{cust_id},'Informational'])
 
 
 					if nonormalbaseline > 0 or notrafficstats > 0: 
@@ -309,7 +313,7 @@ def ParseDNSRawReport():
 						logging.info(f'Lost stats for DNS normal baselines "{nonormalbaseline}" times. DP IP {dp_ip} DP name {dp_name} policy {policy}.')
 						with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 							low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for DNS normal baselines {nonormalbaseline} times'])
+							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for DNS normal baselines {nonormalbaseline} times',{cust_id},'Medium'])
 
 	return final_dns_report
 
@@ -320,13 +324,14 @@ def ParseBDOSStats(final_report):
 
 	for dp_ip,dp_ip_attr in final_report.items():
 		dp_name = dp_ip_attr['Name']
+		cust_id = dp_ip_attr['Customer ID']
 		for pol_name, pol_attr in dp_ip_attr['Policies'].items():
 			for flag,flag_val in pol_attr.items():
 				if flag_val[0] >= alarm_threshold:
 					# logging.info(f'{dp_name} , {dp_ip} , {pol_name}- "{flag}" traffic utilization has exceeded the virtual baseline set to {int(ratio*100)}% of the real baseline {flag_val[0]} times. Exceed ratio - {flag_val[1]}, ')
 					with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
 						bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-						bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{pol_name}' , f'{flag}' ,	f'{flag_val[0]}' , f'{flag_val[1]}' , 'N/A'])
+						bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{pol_name}' , f'{flag}' ,	f'{flag_val[0]}' , f'{flag_val[1]}' , 'N/A' , {cust_id},'High'])
 
 	return
 
@@ -338,12 +343,13 @@ def ParseDNSStats(final_report):
 
 	for dp_ip,dp_ip_attr in final_report.items():
 		dp_name = dp_ip_attr['Name']
+		cust_id = dp_ip_attr['Customer ID']
 		for pol_name, pol_attr in dp_ip_attr['Policies'].items():
 			for flag,flag_val in pol_attr.items():
 				if flag_val[0] >= alarm_threshold:
 					# logging.info(f'{dp_name} , {dp_ip} , {pol_name}- "{flag}" traffic utilization has exceeded the virtual baseline set to {int(ratio*100)}% of the real baseline {flag_val[0]} times. Exceed ratio - {flag_val[1]}, ')
 					with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
 						bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-						bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{pol_name}' , f'{flag}' ,	f'{flag_val[0]}' , f'{flag_val[1]}' , 'N/A'])
+						bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{pol_name}' , f'{flag}' ,	f'{flag_val[0]}' , f'{flag_val[1]}' , 'N/A', {cust_id},'High'])
 
 	return

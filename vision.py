@@ -78,6 +78,7 @@ class Vision:
 		policy_list = r.json()
 
 		if policy_list.get("status") == "error":
+			print("Policies list get error. DefensePro IP: " + dp_ip + ". Error message: " + policy_list['message'])
 			logging.info("Policies list get error. DefensePro IP: " + dp_ip + ". Error message: " + policy_list['message'])
 			return []
 
@@ -159,7 +160,7 @@ class Vision:
 		for protocol in BDOS_portocols:
 
 			self.BDOSformatRequest['criteria'][1]["value"] = protocol
-			
+
 			if ipv6:
 				#print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - IPv6')  
 
@@ -169,7 +170,7 @@ class Vision:
 				jsonData = json.loads(r.text)
 
 				if jsonData['data'] == ([]): #Empty response
-					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					#print(f'{pol_dp_ip} empty response')
 					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					bdosReportList.append(empty_resp)
@@ -185,7 +186,8 @@ class Vision:
 				jsonData = json.loads(r.text)
 				
 				if jsonData['data'] == ([]): #Empty response
-					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+
+					# print(f'{pol_dp_ip} empty response')
 					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					bdosReportList.append(empty_resp)
@@ -256,7 +258,7 @@ class Vision:
 				jsonData = json.loads(r.text)
 				
 				if jsonData['data'] == ([]): #Empty response
-					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					# print(f'{pol_dp_ip} empty response')
 					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					dnsReportList.append(empty_resp)
@@ -273,7 +275,7 @@ class Vision:
 				jsonData = json.loads(r.text)
 				
 				if jsonData['data'] == ([]): #Empty response
-					# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					# print(f'{pol_dp_ip} empty response')
 					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					dnsReportList.append(empty_resp)
@@ -303,6 +305,8 @@ class Vision:
 		# Create Full Network class profile list with networks dictionary per DefensePro
 		
 		if self.getNetClassListByDevice(key) == ([]): #If DefensePro is unreachable
+			# print(f'DefensePro {key} is unreachable')
+			full_net_dic[key] = {}
 			full_net_dic[key]['rsBWMNetworkTable'] = []
 			full_net_dic[key]['Name'] = val['Name']
 
@@ -314,36 +318,40 @@ class Vision:
 		return full_net_dic
 	
 
-	def getBDOSReportFromVision(self,full_pol_dic,full_net_dic,bdos_stats_dict):
+	def getBDOSReportFromVision(self,dev_ip,dev_attr,full_pol_dic,full_net_dic,bdos_stats_dict,cust_id):
 
 
 		for dp_ip,dp_attr in full_pol_dic.items():
-			bdos_stats_dict[dp_ip] = {}
-			bdos_stats_dict[dp_ip]['Name'] = dp_attr['Name']
-			bdos_stats_dict[dp_ip]['BDOS Report'] = []
+			if dp_ip == dev_ip:
+				bdos_stats_dict[dp_ip] = {}
+				bdos_stats_dict[dp_ip]['Name'] = dp_attr['Name']
+				bdos_stats_dict[dp_ip]['Customer ID'] = cust_id
+				bdos_stats_dict[dp_ip]['BDOS Report'] = []
 
-			if not dp_attr['Policies']:
-				continue
-			for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
-				if pol_attr["rsIDSNewRulesProfileNetflood"] != "" and pol_attr["rsIDSNewRulesProfileNetflood"] != "null" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr['rsIDSNewRulesState'] != "2":
-					bdos_report = self.getBDOSTrafficReport(dp_ip,pol_attr,full_net_dic)
-					bdos_stats_dict[dp_ip]['BDOS Report'].append(bdos_report)
+				if not dp_attr['Policies']:
+					continue
+				for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
+					if pol_attr["rsIDSNewRulesProfileNetflood"] != "" and pol_attr["rsIDSNewRulesProfileNetflood"] != "null" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr['rsIDSNewRulesState'] != "2":
+						bdos_report = self.getBDOSTrafficReport(dp_ip,pol_attr,full_net_dic)
+						bdos_stats_dict[dp_ip]['BDOS Report'].append(bdos_report)
 
 		return bdos_stats_dict
 	
 
-	def getDNSReportFromVision(self,full_pol_dic,full_net_dic,dns_stats_dict):
+	def getDNSReportFromVision(self,dev_ip,dev_attr,full_pol_dic,full_net_dic,dns_stats_dict,cust_id):
 
 		for dp_ip,dp_attr in full_pol_dic.items():
-			dns_stats_dict[dp_ip] = {}
-			dns_stats_dict[dp_ip]['Name'] = dp_attr['Name']
-			dns_stats_dict[dp_ip]['DNS Report'] = []
+			if dp_ip == dev_ip:
+				dns_stats_dict[dp_ip] = {}
+				dns_stats_dict[dp_ip]['Name'] = dp_attr['Name']
+				dns_stats_dict[dp_ip]['Customer ID'] = cust_id
+				dns_stats_dict[dp_ip]['DNS Report'] = []
 
-			if not dp_attr['Policies']:
-				continue
-			for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
-				if pol_attr["rsIDSNewRulesProfileDNS"] != "" and pol_attr["rsIDSNewRulesProfileDNS"] != "null" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr['rsIDSNewRulesState'] != "2":
-					dns_report = self.getDNStrafficReport(dp_ip,pol_attr,full_net_dic)
-					dns_stats_dict[dp_ip]['DNS Report'].append(dns_report)
+				if not dp_attr['Policies']:
+					continue
+				for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
+					if pol_attr["rsIDSNewRulesProfileDNS"] != "" and pol_attr["rsIDSNewRulesProfileDNS"] != "null" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr['rsIDSNewRulesState'] != "2":
+						dns_report = self.getDNStrafficReport(dp_ip,pol_attr,full_net_dic)
+						dns_stats_dict[dp_ip]['DNS Report'].append(dns_report)
 
 		return dns_stats_dict

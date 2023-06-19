@@ -55,30 +55,31 @@ for i in sys.argv:
 		nodpconfigparsing = True
 
 
-def get_data_from_vision(key,val):
+def get_data_from_vision(dev_ip,dev_attr,cust_id= 'None'):
 
 	global full_pol_dic
 	global full_net_dic
 	global bdos_stats_dict
 	global dns_stats_dict
 
-	print(f'Collecting policies data from Defensepro {key}')
-	logging_helper.logging.info(f'Collecting policies data from Defensepro {key}')
-	full_pol_dic = v.getFullPolicyDictionary(key,val,full_pol_dic)
+	print(f'Collecting policies data from Defensepro {dev_ip}')
+	logging_helper.logging.info(f'Collecting policies data from Defensepro {dev_ip}')
+	full_pol_dic = v.getFullPolicyDictionary(dev_ip,dev_attr,full_pol_dic)
 
 
-	print(f'Collecting network classes data from Defensepro {key}')
-	logging_helper.logging.info(f'Collecting network classes data from Defensepro {key}')
-	full_net_dic = v.getFullNetClassDictionary(key,val,full_net_dic)
+	print(f'Collecting network classes data from Defensepro {dev_ip}')
+	logging_helper.logging.info(f'Collecting network classes data from Defensepro {dev_ip}')
+	full_net_dic = v.getFullNetClassDictionary(dev_ip,dev_attr,full_net_dic)
 
 
-	print(f'Collecting BDOS stats data from Defensepro {key}')
+	print(f'Collecting BDOS stats data from Defensepro {dev_ip}')
 	logging_helper.logging.info('Collecting BDOS stats data')
-	bdos_stats_dict = v.getBDOSReportFromVision(full_pol_dic,full_net_dic,bdos_stats_dict)
+	bdos_stats_dict = v.getBDOSReportFromVision(dev_ip,dev_attr,full_pol_dic,full_net_dic,bdos_stats_dict,cust_id)
+	
 
-	print(f'Collecting DNS stats data from Defensepro {key}')
+	print(f'Collecting DNS stats data from Defensepro {dev_ip}')
 	logging_helper.logging.info('Collecting DNS stats data')
-	dns_stats_dict = v.getDNSReportFromVision(full_pol_dic,full_net_dic,dns_stats_dict)
+	dns_stats_dict = v.getDNSReportFromVision(dev_ip,dev_attr,full_pol_dic,full_net_dic,dns_stats_dict,cust_id)
 	
 	print('-' * 25)
 
@@ -146,10 +147,10 @@ else: # If Script run without argument "--use-cache-data" - script will collect 
 
 						v = Vision(vision_ip, vision_user, vision_pass)
 
-						for key, val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
-							if key in dp_list:
+						for dev_ip, dev_val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
+							if dev_ip in dp_list:
 								
-								get_data_from_vision(key,val)
+								get_data_from_vision(dev_ip,dev_val,cust_id)
 
 
 				else: #If CUSTOMERS_JSON_CUST_ID_LIST is not empty, collect only the customers defined in the list	
@@ -164,10 +165,10 @@ else: # If Script run without argument "--use-cache-data" - script will collect 
 
 							v = Vision(vision_ip, vision_user, vision_pass)
 
-							for key, val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
-								if key in dp_list:
+							for dev_ip, dev_val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
+								if dev_ip in dp_list:
 
-									get_data_from_vision(key,val)
+									get_data_from_vision(dev_ip, dev_val,cust_id)
 
 	else: #If customers.json is set to false, use the scope defined in config.py variable "DP_IP_SCOPE_LIST"
 		print('CUSTOMERS_JSON is set to False - collecting data using the scope from DP_IP_SCOPE_LIST')
@@ -178,23 +179,23 @@ else: # If Script run without argument "--use-cache-data" - script will collect 
 			print('DP_IP_SCOPE_LIST is not defined - collecting data from all DefensePro in Vision')
 			print('-' * 25)
 
-			for key, val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
+			for dev_ip, dev_val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
 
-				get_data_from_vision(key,val)
+				get_data_from_vision(dev_ip, dev_val)
 			
 
 		else: #If DP_IP_SCOPE_LIST is defined (not empty), collect all policies for the DefensePro in the list
 			print(f'DP_IP_SCOPE_LIST is defined - collecting data from specific DefensePro from the list {cfg.DP_IP_SCOPE_LIST}')
 			print('-' * 25)
 
-			for key, val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
+			for dev_ip, dev_val in v.device_list.items(): #key - DP IP, val - DP Attributes - Type, Name, Version, OrmId
 
-				if key in cfg.DP_IP_SCOPE_LIST:	
+				if dev_ip in cfg.DP_IP_SCOPE_LIST:	
 
-					get_data_from_vision(key,val)
+					get_data_from_vision(dev_ip, dev_val)
 
 				else:
-					print(f'Skipping data collection for Defensepro {key} - {val["Name"]}. Not in DP_IP_SCOPE_LIST')
+					print(f'Skipping data collection for Defensepro {dev_ip} - {dev_val["Name"]}. Not in DP_IP_SCOPE_LIST')
 					print('-' * 25)
 
 
