@@ -31,6 +31,7 @@ SYSLOG_SERVER = "1.1.1.2" # Syslog server destination IP
 SYSLOG_PORT = 514 # Syslog server destination UDP port
 
 # Email set up parameters for sending email with reports
+SMTP = False # True - send email with reports, False - do not send email with reports
 SMTP_AUTH = True
 SMTP_SERVER = "smtp.gmail.com" # SMTP server name
 SMTP_SERVER_PORT = 587 # SMTP server port

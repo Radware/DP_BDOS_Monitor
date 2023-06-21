@@ -87,6 +87,12 @@ V3.1(6/19/23)
 -	New feature - Added Customer ID column from customers.json to the csv reports
 -	New feature - Added Severity column to the csv reports 
 
+V3.2
+-	Added mandatory configurable "SMTP" variable True/False ton config.py which controls if email should/should not be sent at the end of the script
+	!!! Add SMTP variable with value True of False  to config.py
+-	Added new feature - for No BDOS Stats and No traffic stats- to differentiate if 	stats are missing for IPv4 or IPv6
+
+
 ## Functionality to be added:
 
 - Add progress logging

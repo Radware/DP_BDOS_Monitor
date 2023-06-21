@@ -171,7 +171,7 @@ class Vision:
 
 				if jsonData['data'] == ([]): #Empty response
 					#print(f'{pol_dp_ip} empty response')
-					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol, 'ipv': 'IPv6'}}]
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					bdosReportList.append(empty_resp)
 
@@ -188,7 +188,7 @@ class Vision:
 				if jsonData['data'] == ([]): #Empty response
 
 					# print(f'{pol_dp_ip} empty response')
-					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol, 'ipv': 'IPv4'}}]	
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					bdosReportList.append(empty_resp)
 
@@ -259,7 +259,7 @@ class Vision:
 				
 				if jsonData['data'] == ([]): #Empty response
 					# print(f'{pol_dp_ip} empty response')
-					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol, 'ipv': 'IPv6'}}]
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					dnsReportList.append(empty_resp)
 
@@ -276,7 +276,7 @@ class Vision:
 				
 				if jsonData['data'] == ([]): #Empty response
 					# print(f'{pol_dp_ip} empty response')
-					empty_resp = [{'row': {'response': 'empty', 'protection': protocol}}]
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol, 'ipv': 'IPv4'}}]
 					# print(f'Printing empty resp ipv6 - {empty_resp}')
 					dnsReportList.append(empty_resp)
 

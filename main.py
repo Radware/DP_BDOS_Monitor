@@ -41,10 +41,6 @@ for i in sys.argv:
 		getdatafromvision = False
 		logging_helper.logging.info('Running script using cache data only')
 		
-	if i.lower() == "--no-alarm":
-		#Run script without sending email alert.
-		alarm = False
-		logging_helper.logging.info('Running script without email alarm')
 
 	if i.lower() == "--test-alarm":
 		#Run script- test email alert only
@@ -222,5 +218,5 @@ if not test_email_alarm:
 if test_email_alarm:
 	report = ['test']
 
-if alarm:
+if cfg.SMTP:
 	logging_helper.send_report(report)
