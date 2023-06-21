@@ -92,11 +92,6 @@ def ParseBDOSRawReport():
 
 						normal_baseline = row['normal']		
 						protoc = row['protection']
-
-						if row['isIpv4']:
-							ipv = 'IPv4'
-						else:
-							ipv = 'IPv6'
 						
 
 						if normal_baseline is None:
@@ -171,11 +166,13 @@ def ParseBDOSRawReport():
 
 				if len(stampslist): 
 					# No traffic
+
+
 					if no_traffic == stampslist_count:#if currthroughput_avg == 0.0 on all protocol types
 						logging.info(f'DP IP {dp_ip} DP name {dp_name} policy {policy}- No traffic for any of the BDOS protocols.')
 						with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 							low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'No traffic for any of the BDOS protocols ({ipv})', f'{cust_id}','Informational'])
+							low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'No traffic for any of the BDOS protocols', f'{cust_id}','Informational'])
 
 
 				if nonormalbaseline > 0 or notrafficstats > 0: 
