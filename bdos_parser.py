@@ -86,7 +86,7 @@ def ParseBDOSRawReport():
 								
 								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
 									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'No BDOS stats ({row["ipv"]})', f'{cust_id}','Medium'])
+									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'{cust_id}','Medium'])
 
 								continue
 
@@ -180,7 +180,7 @@ def ParseBDOSRawReport():
 					logging.info(f'Lost stats for BDOS normal baselines "{nonormalbaseline}" times. DP IP {dp_ip} DP name {dp_name} policy {policy}.')
 					with open(reports_path + 'low_bdos_baselines.csv', mode='a', newline="") as low_bdos_baselines:
 						low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-						low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for BDOS normal baselines {nonormalbaseline} times ({ipv})',f'{cust_id}','Medium'])
+						low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for BDOS normal baselines {nonormalbaseline} times ',f'{cust_id}','Medium'])
 			
 	return final_report
 
@@ -234,7 +234,7 @@ def ParseDNSRawReport():
 									
 									with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
 										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})' , f'No DNS stats ({row["ipv"]})',f'{cust_id}','Medium'])
+										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})' , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})',f'{cust_id}','Medium'])
 
 									continue
 

@@ -92,6 +92,8 @@ V3.2
 	!!! Add SMTP variable with value True of False  to config.py
 -	Added new feature - for No BDOS Stats and No traffic stats- to differentiate if 	stats are missing for IPv4 or IPv6
 
+V3.2.1
+-	Bugfix with high baselines report alignment
 
 ## Functionality to be added:
 
