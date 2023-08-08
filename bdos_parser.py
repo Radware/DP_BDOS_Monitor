@@ -19,14 +19,19 @@ def parse():
 		low_bdos_baselines = csv.writer(low_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 		low_bdos_baselines.writerow(['DefensePro Name' , 'DefensePro IP' ,	'Policy' , 'Traffic type' ,	'No of times exceeded' , 'Exceed average ratio', 'Details', 'Customer ID','Severity'])
 
-	with open(reports_path + 'high_bdos_baselines.csv', mode='w', newline="") as high_bdos_baselines:
-		high_bdos_baselines = csv.writer(high_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-		high_bdos_baselines.writerow([f'DefensePro IP' , f'DefensePro Name', f'Policy', f'Protocol' , f'Throughput average(Mbps)', f'Normal Baselin(Mbps)' , f'Delta from average traffic to Normal baseline in Mbps' , f'Average traffic ratio from baseline in %', 'Customer ID','Severity'])
+	if cfg.HIGH_BDOS_BASELINE_REPORT:
+		with open(reports_path + 'high_bdos_baselines.csv', mode='w', newline="") as high_bdos_baselines:
+			high_bdos_baselines = csv.writer(high_bdos_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+			high_bdos_baselines.writerow([f'DefensePro IP' , f'DefensePro Name', f'Policy', f'Protocol' , f'Throughput average(Mbps)', f'Normal Baselin(Mbps)' , f'Delta from average traffic to Normal baseline in Mbps' , f'Average traffic ratio from baseline in %', 'Customer ID','Severity'])
 
 
 	ParseBDOSStats(ParseBDOSRawReport())
 		#ParseBDOSRawReport() function parses BDOS_traffic_report.json raw JSON data, counts all the occurances where the actual traffic utilization was above the Virtual baselines and creates another dictionary "final_report"
 		#ParseBDOSStats() function parses "final_report" which is dictioinary with all the occurances where the actual traffic utilization was above the Virtual baselines created by ParseBDOSRawReport() function.
+
+	ParseBDOSStats_PPS(ParseBDOSRawReport_PPS())
+		#ParseBDOSRawReport_PPS() function parses BDOS_traffic_report_PPS.json raw JSON data, counts all the occurances where the actual PPS was above the Virtual baselines and creates another dictionary "final_report_pps"
+		#ParseBDOSStats_PPS() function parses "final_report_pps" which is dictioinary with all the occurances where the actual PPS was above the Virtual baselines created by ParseBDOSRawReport_PPS() function.
 
 	if os.path.exists(raw_data_path + 'DNS_traffic_report.json'):
 		ParseDNSStats(ParseDNSRawReport())
@@ -35,7 +40,8 @@ def parse():
 
 	
 	report.append(reports_path + 'low_bdos_baselines.csv')
-	report.append(reports_path + 'high_bdos_baselines.csv')
+	if cfg.HIGH_BDOS_BASELINE_REPORT:
+		report.append(reports_path + 'high_bdos_baselines.csv')
 
 	return report
 
@@ -84,9 +90,10 @@ def ParseBDOSRawReport():
 									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'No BDOS stats ({row["ipv"]})' , f'{cust_id}','Medium'])
 								
-								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
-									traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'{cust_id}','Medium'])
+								if cfg.HIGH_BDOS_BASELINE_REPORT:
+									with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'No BDOS stats ({row["ipv"]})', f'No BDOS stats ({row["ipv"]})' , f'{cust_id}','Medium'])
 
 								continue
 
@@ -151,10 +158,10 @@ def ParseBDOSRawReport():
 							high_baseline_ratio = (top_currthroughput_avg / float(normal_baseline)) * 100
 							high_baseline_delta = float(normal_baseline) - top_currthroughput_avg
 							
-
-							with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
-								highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-								highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}', f'{cust_id}','Informational'])
+							if cfg.HIGH_BDOS_BASELINE_REPORT:
+								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
+									highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+									highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}', f'{cust_id}','Informational'])
 
 #################End of High baselines detection###############################################
 						
@@ -183,6 +190,89 @@ def ParseBDOSRawReport():
 						low_bdos_baselines.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{policy}' , 'N/A' ,	'N/A' , 'N/A' , f'Lost stats for BDOS normal baselines {nonormalbaseline} times ',f'{cust_id}','Medium'])
 			
 	return final_report
+
+
+def ParseBDOSRawReport_PPS():
+	
+	final_report_pps = {}
+
+	with open(raw_data_path + 'BDOS_traffic_report_PPS.json') as json_file:
+		bdos_dict = json.load(json_file)
+
+
+	for dp_ip,dp_ip_attr in bdos_dict.items():
+		ratio = cfg.DET_MARGIN_RATIO
+		dp_name = dp_ip_attr['Name']
+		final_report_pps[dp_ip] = {}
+		final_report_pps[dp_ip]['Name'] = dp_name
+		final_report_pps[dp_ip]['Customer ID'] = dp_ip_attr['Customer ID']
+		cust_id = dp_ip_attr['Customer ID']
+		final_report_pps[dp_ip]['Policies'] = {}
+		
+	
+		for policy_attr_obj in dp_ip_attr['BDOS Report']: # policy_attr_obj = {"pol_dmz_prod": [[{"row": {"deviceIp": "10.107.129.209", "normal": "184320.0", "fullExcluded": "-1.0", "policyName": "pol_dmz_prod", "enrichmentContainer": "{}", "protection": "udp", "isTcp": "false", "isIpv4": "true", "units": "bps", "timeStamp": "1620141600000", "fast": null, "id": null, "partial": "0.0", "direction": "In", "full": "0.0"}}
+			for policy, pol_attr in policy_attr_obj.items(): #pol_attr is [[{"row": {"deviceIp": "10.160.207.116", "normal": "23033.0", "policyName": "FW_VPN", "enrichmentContainer": "{}", "protection": "udp", "isTcp": "false", "isIpv4": "true", "units": "bps", "timeStamp": "1620145200000", "fast": "0.0", "id": null, "partial": "0.0", "direction": "In", "full": "0.0"}}, {"row": {"deviceIp": "10.160.207.116", "normal": "23033.0", "policyName": "FW_VPN", "enrichmentContainer": "{}", "protection": "udp", "isTcp": "false", "isI
+				notrafficstats = 0
+				nonormalbaseline = 0
+				flags = {"udp":[0,0],"tcp-syn":[0,0],"tcp-syn-ack":[0,0],"tcp-rst":[0,0],"tcp-ack-fin":[0,0],"tcp-frag":[0,0],"udp-frag":[0,0],"icmp":[0,0],"igmp":[0,0]} #First element is number of occurances the traffic exceeded the virtual baseline, second is the average exceeding ratio
+				final_report_pps[dp_ip]['Policies'][policy] = flags
+				stampslist_count = 0
+				no_traffic = 0
+				
+				for stampslist in pol_attr: #stampslist = IF 24 hours - list of 72 checkpoints (every 20 min) for the particular protection (udp, tcp-syn etc.) [{'row': {'deviceIp': '10.107.129.206', 'normal': '161.0', 'fullExcluded': '-1.0', 'policyName': 'NIX-NC-EB-dns', 'enrichmentContainer': '{}', 'protection': 'tcp-frag', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620141600000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}, {'row': ....
+					exceedlist = []
+					avg_exceededby = 0
+					currthroughput_list = []
+					stampslist_count +=1
+					
+					for stamp in stampslist: # every row {'row': {'deviceIp': '10.107.129.205', 'normal': '645.0', 'fullExcluded': '0.0', 'policyName': 'test_1', 'enrichmentContainer': '{}', 'protection': 'tcp-rst', 'isTcp': 'false', 'isIpv4': 'true', 'units': 'bps', 'timeStamp': '1620152400000', 'fast': '0.0', 'id': None, 'partial': '0.0', 'direction': 'In', 'full': '0.0'}}
+						row = stamp['row']
+
+						if 'response' in row:
+							if row['response'] == 'empty':
+								# print(f'{dp_ip},{dp_name},{policy},' , row['protection'] ,' - no BDOS stats ---')
+								empty_resp = True
+							
+								continue
+
+						normal_baseline = row['normal']		
+						protoc = row['protection']
+						
+
+						if normal_baseline is None:
+							# normal_baseline = 0
+							nonormalbaseline +=1
+							continue
+
+						currthroughput = row['full']
+						if currthroughput is None:
+							notrafficstats +=1
+							# currthroughput = 0
+							continue
+
+						virtual_baseline = float(normal_baseline)* ratio
+
+						currthroughput = float(currthroughput)
+						
+						currthroughput_list.append(currthroughput)
+
+
+						if  currthroughput > virtual_baseline:
+							if virtual_baseline != 0:
+								final_report_pps[dp_ip]['Policies'][policy][protoc][0] += 1
+						
+							if virtual_baseline !=0:
+								# print(f'Virt baseline is not 0 for {dp_name} , {dp_ip} ,{policy} , {protoc}' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(row['timeStamp'])//1000)))
+								exceededby = currthroughput / virtual_baseline # calculate the ratio the traffic surpassed the 
+								exceedlist.append(exceededby)
+
+
+
+					if len(exceedlist): # if list is not empty, calculate the average exceeding ratio
+						avg_exceededby = (sum(exceedlist)) / len(exceedlist)
+						final_report_pps[dp_ip]['Policies'][policy][row['protection']][1] = avg_exceededby
+
+	return final_report_pps
 
 
 def ParseDNSRawReport():
@@ -232,9 +322,10 @@ def ParseDNSRawReport():
 										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})' , f'No DNS stats ({row["ipv"]})',f'{cust_id}','Medium'])
 									
-									with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
-										traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-										traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})' , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})',f'{cust_id}','Medium'])
+									if cfg.HIGH_BDOS_BASELINE_REPORT:
+										with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as traffic_stats:
+											traffic_stats = csv.writer(traffic_stats, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+											traffic_stats.writerow([f'{dp_name}' , f'{dp_ip}', f'{policy}', row['protection'] , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})' , f'No DNS stats ({row["ipv"]})', f'No DNS stats ({row["ipv"]})',f'{cust_id}','Medium'])
 
 									continue
 
@@ -270,7 +361,7 @@ def ParseDNSRawReport():
 
 
 
-	###############Start of High BDOS baselines####################
+	###############Start of High DNS baselines####################
 
 						if len(currthroughput_list) and sum(currthroughput_list) !=0: # if current throughput list per stamplist is not empty, calculate average throughput
 							# currthroughput_avg = (sum(currthroughput_list)) / (len(currthroughput_list))
@@ -290,10 +381,10 @@ def ParseDNSRawReport():
 								high_baseline_ratio = (top_currthroughput_avg / float(normal_baseline)) * 100
 								high_baseline_delta = float(normal_baseline) - top_currthroughput_avg
 								
-
-								with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
-									highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-									highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}',f'{cust_id}','Informational'])
+								if cfg.HIGH_BDOS_BASELINE_REPORT:
+									with open(reports_path + 'high_bdos_baselines.csv', mode='a', newline="") as high_baselines:
+										highbas = csv.writer(high_baselines, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+										highbas.writerow([f'{dp_ip}',f'{dp_name}',f'{policy}',f'{protoc}',f'{top_currthroughput_avg / 1000}',f'{float(normal_baseline) / 1000}',f'{high_baseline_delta / 1000}',f'{round(high_baseline_ratio,2)}',f'{cust_id}','Informational'])
 
 	#################End of High baselines detection###############################################
 							
@@ -334,10 +425,27 @@ def ParseBDOSStats(final_report):
 					# logging.info(f'{dp_name} , {dp_ip} , {pol_name}- "{flag}" traffic utilization has exceeded the virtual baseline set to {int(ratio*100)}% of the real baseline {flag_val[0]} times. Exceed ratio - {flag_val[1]}, ')
 					with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
 						bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-						bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{pol_name}' , f'{flag}' ,	f'{flag_val[0]}' , f'{flag_val[1]}' , 'N/A' , f'{cust_id}','High'])
+						bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{pol_name}' , f'{flag} (Mbps)' ,	f'{flag_val[0]}' , f'{flag_val[1]}' , 'Mbps rate exceeded' , f'{cust_id}','High'])
 
 	return
 
+
+def ParseBDOSStats_PPS(final_report_pps):
+	
+	alarm_threshold = cfg.DET_ALARM_THRESHOLD
+
+	for dp_ip,dp_ip_attr in final_report_pps.items():
+		dp_name = dp_ip_attr['Name']
+		cust_id = dp_ip_attr['Customer ID']
+		for pol_name, pol_attr in dp_ip_attr['Policies'].items():
+			for flag,flag_val in pol_attr.items():
+				if flag_val[0] >= alarm_threshold:
+					# logging.info(f'{dp_name} , {dp_ip} , {pol_name}- "{flag}" traffic utilization has exceeded the virtual baseline set to {int(ratio*100)}% of the real baseline {flag_val[0]} times. Exceed ratio - {flag_val[1]}, ')
+					with open(reports_path +'low_bdos_baselines.csv', mode='a', newline="") as bdos_final_report:
+						bdos_writer = csv.writer(bdos_final_report, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+						bdos_writer.writerow([f'{dp_name}' , f'{dp_ip}' ,	f'{pol_name}' , f'{flag} (PPS)' ,	f'{flag_val[0]}' , f'{flag_val[1]}' , 'PPS rate exceeded' , f'{cust_id}','High'])
+
+	return
 
 
 def ParseDNSStats(final_report):

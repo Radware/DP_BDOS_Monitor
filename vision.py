@@ -26,6 +26,9 @@ class Vision:
 
 		with open(requests_path + 'BDOStrafficRequest.json') as outfile:
 			self.BDOSformatRequest = json.load(outfile)
+		with open(requests_path + 'BDOStrafficRequest_PPS.json') as BDOStrafficRequest_PPS_file:
+			self.BDOSformatRequest_PPS = json.load(BDOStrafficRequest_PPS_file)
+
 		with open(requests_path + 'DNStrafficRequest.json') as dnstrafficrequest:
 			self.DNSformatRequest = json.load(dnstrafficrequest)
 	
@@ -201,6 +204,112 @@ class Vision:
 		
 		return bdosTrafficReport
 
+
+	def getBDOSTrafficReport_PPS(self,pol_dp_ip,pol_attr,net_list):
+		pol_name = pol_attr["rsIDSNewRulesName"]
+		pol_src_net = pol_attr["rsIDSNewRulesSource"]
+		pol_dst_net = pol_attr["rsIDSNewRulesDestination"]
+
+		if self.vision_ver < 4.83:
+			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_REPORTS' #pre 4.83 Vision
+		else:
+			url = f'https://{self.ip}/mgmt/monitor/reporter/reports-ext/BDOS_BASELINE_RATE_HOURLY_REPORTS' #4.83 Vision
+		BDOS_portocols = ['udp','tcp-syn','tcp-syn-ack','tcp-rst','tcp-ack-fin','tcp-frag','udp-frag','icmp','igmp']
+		
+		self.BDOSformatRequest_PPS['criteria'][5]['upper'] = self.time_now
+		self.BDOSformatRequest_PPS['criteria'][5]['lower'] = self.report_duration
+		self.BDOSformatRequest_PPS['criteria'][6]["filters"][0]['filters'][0]['value'] = pol_dp_ip
+		self.BDOSformatRequest_PPS['criteria'][6]["filters"][0]['filters'][1]["filters"][0]["value"] = pol_name 
+		self.BDOSformatRequest_PPS['criteria'][0]['value'] = 'true' # default IPv4 true
+
+		
+		
+		ipv6 = False
+		ipv4 = False
+		
+		bdosReportList = []
+		
+		for net_dp_ip, dp_attr in net_list.items():
+
+			if dp_attr == ([]):
+				#if unreachable do not perform other tests
+				continue
+			
+			if net_dp_ip == pol_dp_ip:
+				
+
+				for netcl in dp_attr['rsBWMNetworkTable']: #for each netclass element
+					net_name = netcl['rsBWMNetworkName']
+					net_addr = netcl['rsBWMNetworkAddress']
+					#print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name}')  
+					if net_name == pol_src_net and net_name != "any":
+						if ":" in net_addr:
+							ipv6 = True
+							# logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv6')  
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'false'
+							
+						if "." in net_addr:
+							ipv4 = True
+							# logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - src net is IPv4')  
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'true'			
+
+					if net_name == pol_dst_net and net_name != "any":
+						if ":" in net_addr:
+							ipv6 = True
+							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - dst net is IPv6')
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'false'
+							
+						if "." in net_addr:
+							ipv4 = True
+							#logging.info(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - dst net is IPv4')  
+							# self.BDOSformatRequest['criteria'][0]['value'] = 'true'								
+						
+	
+		for protocol in BDOS_portocols:
+
+			self.BDOSformatRequest_PPS['criteria'][1]["value"] = protocol
+
+			if ipv6:
+				#print(f'dp ip is {net_dp_ip},policy {pol_name}, network {net_name} - IPv6')  
+
+				self.BDOSformatRequest_PPS['criteria'][0]['value'] = 'false'
+				r = self.sess.post(url = url, json = self.BDOSformatRequest , verify=False)
+
+				jsonData = json.loads(r.text)
+
+				if jsonData['data'] == ([]): #Empty response
+					#print(f'{pol_dp_ip} empty response')
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol, 'ipv': 'IPv6'}}]
+					# print(f'Printing empty resp ipv6 - {empty_resp}')
+					bdosReportList.append(empty_resp)
+
+					# print(f'{pol_dp_ip}, policy {pol_name} - executing IPv6 query')
+				else:
+					bdosReportList.append(jsonData['data'])
+
+			if ipv4:
+			
+				self.BDOSformatRequest_PPS['criteria'][0]['value'] = 'true'
+				r = self.sess.post(url = url, json = self.BDOSformatRequest_PPS , verify=False)
+				jsonData = json.loads(r.text)
+				
+				if jsonData['data'] == ([]): #Empty response
+
+					# print(f'{pol_dp_ip} empty response')
+					empty_resp = [{'row': {'response': 'empty', 'protection': protocol, 'ipv': 'IPv4'}}]	
+					# print(f'Printing empty resp ipv6 - {empty_resp}')
+					bdosReportList.append(empty_resp)
+
+				# print(f'{pol_dp_ip},{pol_name},{protocol},{jsonData}')
+					# print(f'{pol_dp_ip}, policy {pol_name} - executing IPv4 query')
+				else:
+					bdosReportList.append(jsonData['data'])
+
+		bdosTrafficReport_PPS = {pol_name:bdosReportList}
+		
+		return bdosTrafficReport_PPS
+	
+
 ################DNS Query############################
 
 	def getDNStrafficReport(self,pol_dp_ip,pol_attr,net_list):
@@ -336,7 +445,27 @@ class Vision:
 						bdos_stats_dict[dp_ip]['BDOS Report'].append(bdos_report)
 
 		return bdos_stats_dict
-	
+
+	def getBDOSReportFromVision_PPS(self,dev_ip,dev_attr,full_pol_dic,full_net_dic,bdos_stats_dict_pps,cust_id):
+
+
+		for dp_ip,dp_attr in full_pol_dic.items():
+			if dp_ip == dev_ip:
+				bdos_stats_dict_pps[dp_ip] = {}
+				bdos_stats_dict_pps[dp_ip]['Name'] = dp_attr['Name']
+				bdos_stats_dict_pps[dp_ip]['Customer ID'] = cust_id
+				bdos_stats_dict_pps[dp_ip]['BDOS Report'] = []
+
+				if not dp_attr['Policies']:
+					continue
+				for pol_attr in dp_attr['Policies']['rsIDSNewRulesTable']:
+					if pol_attr["rsIDSNewRulesProfileNetflood"] != "" and pol_attr["rsIDSNewRulesProfileNetflood"] != "null" and pol_attr["rsIDSNewRulesName"] != "null" and pol_attr['rsIDSNewRulesState'] != "2":
+						bdos_report_pps = self.getBDOSTrafficReport_PPS(dp_ip,pol_attr,full_net_dic)
+						bdos_stats_dict_pps[dp_ip]['BDOS Report'].append(bdos_report_pps)
+
+		return bdos_stats_dict_pps
+
+
 
 	def getDNSReportFromVision(self,dev_ip,dev_attr,full_pol_dic,full_net_dic,dns_stats_dict,cust_id):
 

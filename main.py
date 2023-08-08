@@ -56,6 +56,7 @@ def get_data_from_vision(dev_ip,dev_attr,cust_id= 'None'):
 	global full_pol_dic
 	global full_net_dic
 	global bdos_stats_dict
+	global bdos_stats_dict_pps
 	global dns_stats_dict
 
 	print(f'Collecting policies data from Defensepro {dev_ip}')
@@ -72,7 +73,10 @@ def get_data_from_vision(dev_ip,dev_attr,cust_id= 'None'):
 	logging_helper.logging.info('Collecting BDOS stats data')
 	bdos_stats_dict = v.getBDOSReportFromVision(dev_ip,dev_attr,full_pol_dic,full_net_dic,bdos_stats_dict,cust_id)
 	
-
+	print(f'Collecting BDOS PPS stats data from Defensepro {dev_ip}')
+	logging_helper.logging.info('Collecting BDOS PPS stats data')
+	bdos_stats_dict_pps = v.getBDOSReportFromVision_PPS(dev_ip,dev_attr,full_pol_dic,full_net_dic,bdos_stats_dict_pps,cust_id)
+	
 	print(f'Collecting DNS stats data from Defensepro {dev_ip}')
 	logging_helper.logging.info('Collecting DNS stats data')
 	dns_stats_dict = v.getDNSReportFromVision(dev_ip,dev_attr,full_pol_dic,full_net_dic,dns_stats_dict,cust_id)
@@ -104,6 +108,7 @@ else: # If Script run without argument "--use-cache-data" - script will collect 
 	full_pol_dic = {}
 	full_net_dic = {}
 	bdos_stats_dict = {}
+	bdos_stats_dict_pps = {}
 	dns_stats_dict = {}
 
 	print('Cleaning up previous DP config files')
@@ -203,6 +208,9 @@ else: # If Script run without argument "--use-cache-data" - script will collect 
 
 	with open(raw_data_path + 'BDOS_traffic_report.json', 'w') as outfile:
 		json.dump(bdos_stats_dict,outfile)
+
+	with open(raw_data_path + 'BDOS_traffic_report_PPS.json', 'w') as outfile:
+		json.dump(bdos_stats_dict_pps,outfile)
 
 	with open(raw_data_path + 'DNS_traffic_report.json', 'w') as outfile:
 		json.dump(dns_stats_dict,outfile)

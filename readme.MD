@@ -95,6 +95,13 @@ V3.2
 V3.2.1
 -	Bugfix with high baselines report alignment
 
+V3.3 (8/8/2023)
+-	Added new feature -checking if BDOS PPS exceed the BDOS baselines
+-	Added configurable variable HIGH_BDOS_BASELINE_REPORT under config.py
+		!! config.py must be updated
+		HIGH_BDOS_BASELINE_REPORT = False
+
+
 ## Functionality to be added:
 
 - Add progress logging
