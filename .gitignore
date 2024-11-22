@@ -355,3 +355,4 @@ Container/
 requirements.txt.bak
 *.bak
 customers.json
+run.sh
