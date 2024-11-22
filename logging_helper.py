@@ -16,7 +16,7 @@ def send_report(report_list):
 	password = cfg.SMTP_PASSWORD
 
 	msg = MIMEMultipart()
-	msg["Subject"] = cfg.SMTP_SUBJECT_PREFIX + "DefensePro report  - " + date.today().strftime("%B %d, %Y")
+	msg["Subject"] = cfg.SMTP_SUBJECT_PREFIX + "Normal - " + date.today().strftime("%B %d, %Y")
 	msg["From"] = fromaddr
 	msg["To"] = ', '.join(toaddr)
 	body = cfg.SMTP_MSG_BODY
@@ -25,20 +25,20 @@ def send_report(report_list):
 	for report in report_list:
 
 		if report == './Reports/low_bdos_baselines.csv':
-			#Send bdos baselines report only if there are entries in CSV
+			logging.info('sending low_bdos_baselines by email')
 			statinfo = os.stat(report)
-			if statinfo.st_size > 101: #send report only if there are values (only headers)
-				
-				logging.info('sending low_bdos_baselines by email')
+			print(statinfo.st_size)
+			if statinfo.st_size > 123: #send report, change subject
+				msg["Subject"] = cfg.SMTP_SUBJECT_PREFIX + "WARNING! - " + date.today().strftime("%B %d, %Y")
+			dir, filename = os.path.split(report)
+			attachment = open(report, "rb")
+			p = MIMEBase('application', 'octet-stream')
+			p.set_payload((attachment).read())
+			encoders.encode_base64(p)
+			p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+			msg.attach(p)
+			attachment.close()
 
-				dir, filename = os.path.split(report)
-				attachment = open(report, "rb")
-				p = MIMEBase('application', 'octet-stream')
-				p.set_payload((attachment).read())
-				encoders.encode_base64(p)
-				p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
-				msg.attach(p)
-				attachment.close()
 		
 		if report == './Reports/high_bdos_baselines.csv':
 			continue
@@ -50,16 +50,16 @@ def send_report(report_list):
 			body = "This email is a test email alert"
 
 
-	if 'attachment' in locals():
-		mailserver = smtplib.SMTP(host=cfg.SMTP_SERVER,port=cfg.SMTP_SERVER_PORT)
-		mailserver.ehlo()
-		if cfg.SMTP_AUTH:
-			mailserver.starttls()
-			mailserver.ehlo()
-			mailserver.login(fromaddr, password)
-		mailserver.sendmail(from_addr=fromaddr,to_addrs=toaddr, msg=msg.as_string())
-		mailserver.quit()
 
+	mailserver = smtplib.SMTP(host=cfg.SMTP_SERVER,port=cfg.SMTP_SERVER_PORT)
+	mailserver.ehlo()
+	if cfg.SMTP_AUTH:
+		mailserver.starttls()
+		mailserver.ehlo()
+		mailserver.login(fromaddr, password)
+	mailserver.sendmail(from_addr=fromaddr,to_addrs=toaddr, msg=msg.as_string())
+	mailserver.quit()
+	
 def log_setup(log_path, syslog_ip, syslog_port):
 	log_dir_name = log_path
 	log_rotation_size = cfg.LOG_ROTATION_SIZE
