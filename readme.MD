@@ -100,7 +100,10 @@ V3.3 (8/8/2023)
 -	Added configurable variable HIGH_BDOS_BASELINE_REPORT under config.py
 		!! config.py must be updated
 		HIGH_BDOS_BASELINE_REPORT = False
-
+V3.3.1 (11/22/2024) - Cris
+-	Added extra logic to change the subject: 
+	- when report is empty, the subject will contain "No issues to report"
+	- when there are items to report, the subject will contain: "WARNING!"
 
 ## Functionality to be added:
 

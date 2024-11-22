@@ -16,7 +16,7 @@ def send_report(report_list):
 	password = cfg.SMTP_PASSWORD
 
 	msg = MIMEMultipart()
-	msg["Subject"] = cfg.SMTP_SUBJECT_PREFIX + "Normal - " + date.today().strftime("%B %d, %Y")
+	msg["Subject"] = cfg.SMTP_SUBJECT_PREFIX + "No issues reported - " + date.today().strftime("%B %d, %Y")
 	msg["From"] = fromaddr
 	msg["To"] = ', '.join(toaddr)
 	body = cfg.SMTP_MSG_BODY
