@@ -105,6 +105,9 @@ V3.3.1 (11/22/2024) - Cris
 	- when report is empty, the subject will contain "No issues to report"
 	- when there are items to report, the subject will contain: "WARNING!"
 
+V3.4 (2/6/2025) - Egor
+- Bugfix with wrong subject, it was always "No Issues" even if there are issues
+
 ## Functionality to be added:
 
 - Add progress logging

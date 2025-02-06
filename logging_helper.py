@@ -29,7 +29,10 @@ def send_report(report_list):
 			statinfo = os.stat(report)
 			print(statinfo.st_size)
 			if statinfo.st_size > 123: #send report, change subject
-				msg["Subject"] = cfg.SMTP_SUBJECT_PREFIX + "WARNING! - " + date.today().strftime("%B %d, %Y")
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "WARNING! - " + date.today().strftime("%B %d, %Y")
+				msg.replace_header("Subject", new_subject)  # Properly replace header
+				print(msg["Subject"])
+
 			dir, filename = os.path.split(report)
 			attachment = open(report, "rb")
 			p = MIMEBase('application', 'octet-stream')
