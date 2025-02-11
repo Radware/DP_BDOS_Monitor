@@ -9,11 +9,19 @@ from email import encoders
 from datetime import date
 import os
 import config as cfg
+import csv
 
 def send_report(report_list):
 	fromaddr = cfg.SMTP_SENDER
 	toaddr = cfg.SMTP_LIST
 	password = cfg.SMTP_PASSWORD
+	column_name='Severity'
+	h_alert='High'
+	m_alert='Medium'
+	l_alert='Informational'
+	h_count=0
+	m_count=0
+	l_count=0
 
 	msg = MIMEMultipart()
 	msg["Subject"] = cfg.SMTP_SUBJECT_PREFIX + "No issues reported - " + date.today().strftime("%B %d, %Y")
@@ -27,8 +35,17 @@ def send_report(report_list):
 		if report == './Reports/low_bdos_baselines.csv':
 			logging.info('sending low_bdos_baselines by email')
 			statinfo = os.stat(report)
+			with open(report, mode='r') as file: #Modified by Fabri
+				reader = csv.DictReader(file) #Modified by Fabri
+				for row in reader: #Modified by Fabri
+					if row[column_name] == h_alert:
+						h_count+=1
+					if row[column_name] == m_alert:
+						m_count+=1 
+					if row[column_name] == l_alert:
+						l_count+=1 
 			print(statinfo.st_size)
-			if statinfo.st_size > 123: #send report, change subject
+			if h_count > 0 or m_count > 0 or l_count > 0: #send report, change subject
 				new_subject = cfg.SMTP_SUBJECT_PREFIX + "WARNING! - " + date.today().strftime("%B %d, %Y")
 				msg.replace_header("Subject", new_subject)  # Properly replace header
 				print(msg["Subject"])
@@ -39,6 +56,14 @@ def send_report(report_list):
 			p.set_payload((attachment).read())
 			encoders.encode_base64(p)
 			p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+			body = f'''
+			{cfg.SMTP_MSG_BODY}
+			Summary of the report:
+			Found {l_count} informational bdos baselines alerts
+			Found {m_count} medium bdos baselines alerts
+			Found {h_count} high bdos baselines alerts
+			'''
+			print(body)
 			msg.attach(p)
 			attachment.close()
 

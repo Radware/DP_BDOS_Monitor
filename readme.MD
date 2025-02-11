@@ -108,6 +108,9 @@ V3.3.1 (11/22/2024) - Cris
 V3.4 (2/6/2025) - Egor
 - Bugfix with wrong subject, it was always "No Issues" even if there are issues
 
+V3.5 (2/11/2025) - Fabri
+- Added email message body with count of alerts
+
 ## Functionality to be added:
 
 - Add progress logging
