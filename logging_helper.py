@@ -43,11 +43,28 @@ def send_report(report_list):
 						m_count+=1 
 					if row[column_name] == l_alert:
 						l_count+=1 
-			print(statinfo.st_size)
-			if h_count > 0 or m_count > 0 or l_count > 0: #send report, change subject
-				new_subject = cfg.SMTP_SUBJECT_PREFIX + "WARNING! - " + date.today().strftime("%B %d, %Y")
-				msg.replace_header("Subject", new_subject)  # Properly replace header
-				print(msg["Subject"])
+
+			if h_count > 0 and m_count > 0 and l_count > 0:
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "High, medium and informational alerts reported - " + date.today().strftime("%B %d, %Y")
+				msg.replace_header("Subject", new_subject)
+			elif h_count > 0 and m_count > 0:
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "High and medium alerts reported - " + date.today().strftime("%B %d, %Y")
+				msg.replace_header("Subject", new_subject)
+			elif m_count > 0 and l_count > 0:
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "Medium and infomrational alerts reported - " + date.today().strftime("%B %d, %Y")
+			elif h_count > 0 and l_count > 0:
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "High and informational alerts reported - " + date.today().strftime("%B %d, %Y")
+				msg.replace_header("Subject", new_subject)
+			elif h_count > 0:
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "High alerts reported - " + date.today().strftime("%B %d, %Y")
+				msg.replace_header("Subject", new_subject)
+			elif m_count > 0:
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "Medium alerts reported - " + date.today().strftime("%B %d, %Y")
+				msg.replace_header("Subject", new_subject)
+			elif l_count > 0:
+				new_subject = cfg.SMTP_SUBJECT_PREFIX + "Informational alerts reported - " + date.today().strftime("%B %d, %Y")
+				msg.replace_header("Subject", new_subject)
+			print(msg["Subject"])
 
 			dir, filename = os.path.split(report)
 			attachment = open(report, "rb")

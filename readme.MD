@@ -111,6 +111,9 @@ V3.4 (2/6/2025) - Egor
 V3.5 (2/11/2025) - Fabri
 - Added email message body with count of alerts
 
+V3.6 (5/9/2025) - Fabri
+- Added different subjects depending on count of alerts.
+
 ## Functionality to be added:
 
 - Add progress logging
